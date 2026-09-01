@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cita Previa 4010 放号监控 · Madrid / Barcelona / Valencia</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+         background:#f2f4f7; color:#1c1e21; font-size:15px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { font-size:12px; color:#65676b; font-weight:normal; }
+  #meta { font-size:13px; color:#444; margin-bottom:10px; }
+  .controls { display:flex; gap:8px; margin-bottom:10px; }
+  button { border:1px solid #ccd0d5; background:#fff; border-radius:6px; padding:5px 14px;
+           font-size:13px; cursor:pointer; }
+  #banner { display:none; background:#2e7d32; color:#fff; border-radius:8px;
+            padding:10px 14px; font-size:16px; font-weight:600; margin-bottom:10px; }
+  #banner a { color:#fff; text-decoration:underline; margin-right:14px; }
+  #stale { display:none; background:#fff3cd; color:#6b5300; border:1px solid #e6d178;
+           border-radius:6px; padding:8px 12px; font-size:13px; margin-bottom:10px; }
+  #legend { display:flex; flex-wrap:wrap; gap:10px 14px; font-size:12px; color:#444;
+            margin:0 0 12px; align-items:center; }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:2px; margin-right:4px;
+        vertical-align:-1px; }
+  #cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+           gap:10px; margin-bottom:16px; }
+  .card { background:#fff; border-radius:8px; padding:12px 14px; border-left:6px solid #c8c8c8;
+          box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .card .head { display:flex; justify-content:space-between; font-size:13px; color:#65676b;
+                margin-bottom:6px; }
+  .card .state { font-size:19px; font-weight:700; margin-bottom:4px; }
+  .card .det { font-size:13px; line-height:1.5; color:#333; }
+  .card .last { font-size:12px; color:#8a8d91; margin-top:6px; }
+  .card.ok { border-left-color:#2e7d32; background:#eaf6ea; }
+  .card.ok .state { color:#1b5e20; }
+  .card.err { border-left-color:#c62828; background:#fdeeee; }
+  .card.err .state { color:#b71c1c; }
+  .city { background:#fff; border-radius:8px; padding:10px 12px; margin-bottom:12px;
+          box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .chead { font-size:14px; font-weight:600; margin-bottom:8px; }
+  .days { display:flex; flex-wrap:wrap; gap:12px; }
+  .dlabel { font-size:11px; color:#555; margin-bottom:3px; white-space:nowrap; }
+  .dlabel.today { color:#1b5e20; font-weight:700; }
+  .matrix { display:grid; grid-template-rows:repeat(6, 13px); grid-template-columns:repeat(8, 7px);
+            grid-auto-flow:column; gap:1px; }
+  .cell { width:7px; height:13px; border-radius:1px; }
+  .g1 { background:#c8e6c9; } .g2 { background:#a5d6a7; } .g3 { background:#81c784; }
+  .g4 { background:#4caf50; } .g5 { background:#2e7d32; } .g6 { background:#1b5e20; }
+  .ce { background:#e53935; } .cn { background:#6b6b6b; } .cx { background:#e0e0e0; }
+  #msg { padding:20px; text-align:center; color:#65676b; background:#fff; border-radius:8px;
+         margin-bottom:12px; }
+  footer { font-size:12px; color:#8a8d91; margin-top:6px; line-height:1.6; }
+</style>
+</head>
+<body>
+<h1>Cita Previa 4010 放号监控 <span class="sub">按指纹 · 每 5 分钟探测 · 马德里时间</span></h1>
+<div id="meta">加载中…</div>
+<div class="controls"><button id="brf">刷新</button></div>
+<div id="banner"></div>
+<div id="stale"></div>
+<div id="legend">
+  <span><span class="sw g1"></span>有号 1 次</span>
+  <span><span class="sw g2"></span>有号 2 次</span>
+  <span><span class="sw g3"></span>有号 3 次</span>
+  <span><span class="sw g4"></span>有号 4 次</span>
+  <span><span class="sw g5"></span>有号 5 次</span>
+  <span><span class="sw g6"></span>有号 6 次</span>
+  <span><span class="sw ce"></span>检查出错</span>
+  <span><span class="sw cn"></span>无号</span>
+  <span><span class="sw cx"></span>未采集/无数据</span>
+</div>
+<div id="msg" hidden></div>
+<main id="cards"></main>
+<div id="board"></div>
+<footer>
+  每格 30 分钟，每天一个 6×8 矩阵（从上到下、从左到右 = 00:00 起每列 3 小时）；
+  今天永远在最左，往右依次回退共 7 天，午夜整板右移一格。悬停看精确时间与计数。
+  每 60 秒自动刷新；GitHub Pages 缓存最多延迟 10 分钟。
+  本页为社区公益信息展示，数据来自对公众预约系统可用性的被动探测，与任何官方机构无关；能否预约以官网为准。
+</footer>
+<script>
+"use strict";
+const MAD = "Europe/Madrid";
+const fmtHM    = new Intl.DateTimeFormat("es-ES", {timeZone:MAD, hour:"2-digit", minute:"2-digit", hourCycle:"h23"});
+const fmtDayKey= new Intl.DateTimeFormat("en-CA", {timeZone:MAD});            // YYYY-MM-DD
+const fmtFull  = new Intl.DateTimeFormat("es-ES", {timeZone:MAD, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit", hourCycle:"h23"});
+const WD = ["日","一","二","三","四","五","六"];
+
+let docs = [];             // 已加载的每轮文档, _t = epoch ms
+
+function parseT(s){        // "2026-09-02T08:01:12+0100" -> epoch ms (+HHMM 归一为 +HH:MM)
+  if (!s) return NaN;
+  return Date.parse(String(s).trim().replace(/([+-]\d\d)(\d\d)$/, "$1:$2"));
+}
+function rel(ms){
+  const m = Math.floor(ms/60000);
+  if (m < 1)  return "刚刚";
+  if (m < 60) return m + " 分钟前";
+  const h = Math.floor(m/60);
+  if (h < 48) return h + " 小时前";
+  return Math.floor(h/24) + " 天前";
+}
+function utcKeysBack(n){   // [今天UTC, 昨天UTC, ...] 共 n+1 个
+  const out = [], now = Date.now();
+  for (let i = 0; i <= n; i++){
+    const d = new Date(now - i*86400000);
+    out.push(d.getUTCFullYear() + String(d.getUTCMonth()+1).padStart(2,"0") + String(d.getUTCDate()).padStart(2,"0"));
+  }
+  return out;
+}
+async function fetchDay(key, bust){
+  const r = await fetch("d/" + key + ".jsonl" + (bust ? "?t=" + Date.now() : ""));
+  if (!r.ok) return;                       // 404 = 该日尚无数据, 正常
+  const txt = await r.text();
+  for (const line of txt.split(/\r?\n/)){
+    if (!line.trim()) continue;
+    try {
+      const d = JSON.parse(line);          // 容忍写入中断的坏末行
+      d._t = parseT(d.generated_at);
+      if (!isNaN(d._t)) docs.push(d);
+    } catch (e) {}
+  }
+}
+async function load(){
+  docs = [];
+  let fail = 0;
+  const days = utcKeysBack(7);             // 7 个马德里日最坏横跨 8 个 UTC 文件
+  await Promise.all(days.map((k, i) =>
+    fetchDay(k, i === 0).catch(() => { fail++; })));   // 今天破缓存, 历史日期走 HTTP 缓存
+  const msg = document.getElementById("msg");
+  msg.hidden = true;
+  if (!docs.length){
+    document.getElementById("cards").innerHTML = "";
+    document.getElementById("board").innerHTML = "";
+    setBanner(null); setStale(false);
+    msg.hidden = false;
+    msg.textContent = location.protocol === "file:"
+      ? "file:// 无法读取数据文件 —— 请通过 GitHub Pages 访问, 或在本目录运行 python -m http.server 后打开 http://127.0.0.1:8000"
+      : (fail === days.length ? "加载数据失败, 60 秒后自动重试"
+                              : "暂无数据, 等待第一轮采集…");
+    document.getElementById("meta").textContent = "暂无数据";
+    return;
+  }
+  render();
+}
+
+/* ---- 渲染 ---- */
+
+function render(){
+  docs.sort((a,b) => a._t - b._t);
+  const latest = docs[docs.length - 1];
+  document.getElementById("meta").textContent =
+    "数据更新 " + fmtFull.format(latest._t) + "（马德里, " + rel(Date.now()-latest._t) + "）";
+  setStale(Date.now() - latest._t > 15*60000);
+  const availNow = (latest.results || []).filter(r => r.available);
+  setBanner(availNow.length ? availNow : null);
+  renderCards(latest);
+  renderBoard();
+}
+function setBanner(list){
+  const b = document.getElementById("banner");
+  if (!list){ b.style.display = "none"; return; }
+  b.style.display = "block";
+  b.innerHTML = list.map(r =>
+    `<a href="#card-${r.province}">📍 ${r.province_name || r.province} 有号！` +
+    (r.earliest ? ` 最早 ${r.earliest.date || ""} ${r.earliest.time || ""}` : "") + "</a>").join("");
+}
+function setStale(on){
+  const s = document.getElementById("stale");
+  s.style.display = on ? "block" : "none";
+  if (on) s.textContent = "⚠ 数据已超过 15 分钟未更新, 监控可能中断";
+}
+function card(r, lastHit){
+  const cls = r.available ? "ok" : (r.status === "error" ? "err" : "no");
+  const st  = r.available ? "有号 HAY CITA"
+            : r.status === "error" ? "检查出错"
+            : "无号 NO HAY CITA";
+  let det = "";
+  if (r.available){
+    if (r.earliest) det += "最早: " + (r.earliest.date || "?") + " " + (r.earliest.time || "") + "<br>";
+    if (r.offices && r.offices.length) det += "地点: " + r.offices.join(" · ") + "<br>";
+  } else if (r.status === "error" && r.error){
+    det += (r.error + "").slice(0, 120) + "<br>";
+  }
+  const t = parseT(r.checked_at);
+  return `<div class="card ${cls}" id="card-${r.province}">
+    <div class="head"><b>${r.province_name || r.province}</b><span>${isNaN(t) ? "" : fmtHM.format(t)}</span></div>
+    <div class="state">${st}</div>
+    <div class="det">${det}</div>
+    <div class="last">最近一次有号: ${lastHit ? rel(Date.now()-lastHit) + "（" + fmtFull.format(lastHit) + "）" : "从未记录到"}</div>
+  </div>`;
+}
+function renderCards(latest){
+  const lastHits = {};                     // 每省最近一次 available 的时间
+  for (const d of docs) for (const r of (d.results || [])){
+    if (!r.available || !r.province) continue;
+    const t = parseT(r.checked_at) || d._t;
+    if (!lastHits[r.province] || t > lastHits[r.province]) lastHits[r.province] = t;
+  }
+  document.getElementById("cards").innerHTML =
+    (latest.results || []).map(r => card(r, lastHits[r.province])).join("");
+}
+
+/* ---- 7 天日历矩阵: 每城 7 块 6×8, 今天最左, 块内列优先 (每列 3 小时) ---- */
+
+function slotLabel(j){                     // 槽位 j -> "HH:MM–HH:MM"
+  const h = Math.floor(j/2), m = (j%2)*30, p = n => String(n).padStart(2,"0");
+  return `${p(h)}:${p(m)}–${p(h + (m===30 ? 1 : 0))}:${p(m===30 ? 0 : 30)}`;
+}
+function dayLabel(key, todayKey){          // "YYYY-MM-DD" -> "周三 02/09"
+  const [y,m,d] = key.split("-");
+  const wd = WD[new Date(key + "T12:00:00Z").getUTCDay()];
+  return `<div class="dlabel${key===todayKey ? " today" : ""}">周${wd} ${d}/${m}</div>`;
+}
+function renderBoard(){
+  const todayKey = fmtDayKey.format(Date.now());
+  const [ty,tm,td] = todayKey.split("-").map(Number);
+  const days = [];                         // [今天, 昨天, ..., 6 天前] 马德里日历日
+  for (let k = 0; k < 7; k++)
+    days.push(new Date(Date.UTC(ty, tm-1, td) - k*86400000).toISOString().slice(0,10));
+
+  // 每省聚合: cells["day|j"] = {c:检查, a:有号, e:错误} —— 马德里墙钟落格
+  const provs = new Map();
+  for (const doc of docs) for (const r of (doc.results || [])){
+    if (!r.province) continue;
+    let o = provs.get(r.province);
+    if (!o){
+      o = {name: r.province_name || ("省 " + r.province), cells: new Map()};
+      provs.set(r.province, o);
+    }
+    let t = parseT(r.checked_at);
+    if (isNaN(t)) t = doc._t;
+    const hm = fmtHM.format(t);
+    const j = (+hm.slice(0,2))*2 + (+hm.slice(3,5) >= 30 ? 1 : 0);
+    const key = fmtDayKey.format(t) + "|" + j;
+    const c = o.cells.get(key) || {c:0, a:0, e:0};
+    c.c++; if (r.available) c.a++; if (r.status === "error") c.e++;
+    o.cells.set(key, c);
+  }
+  const order = (docs[docs.length-1].results || []).map(r => r.province);   // 城市序=最新一轮
+  const ordered = [...provs.entries()].sort((a,b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+
+  let html = "";
+  for (const [, o] of ordered){
+    html += `<div class="city"><div class="chead">${o.name}</div><div class="days">`;
+    for (const day of days){
+      html += `<div class="dayblock">${dayLabel(day, todayKey)}<div class="matrix">`;
+      for (let j = 0; j < 48; j++){
+        const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0};
+        const cls = c.a > 0 ? "g" + Math.min(c.a, 6)
+                  : c.e > 0 ? "ce"
+                  : c.c > 0 ? "cn"          // 检查过但全无号 → 深灰
+                  : "cx";                    // 未采集/无数据 → 浅灰
+        const [y2,m2,d2] = day.split("-");
+        html += `<span class="cell ${cls}" title="周${WD[new Date(day+"T12:00:00Z").getUTCDay()]} ${d2}/${m2} ${slotLabel(j)} 马德里&#10;检查 ${c.c} · 有号 ${c.a} · 错误 ${c.e}"></span>`;
+      }
+      html += `</div></div>`;
+    }
+    html += `</div></div>`;
+  }
+  document.getElementById("board").innerHTML = html;
+}
+
+/* ---- 交互 ---- */
+document.getElementById("brf").onclick = () => load();
+setInterval(load, 60000);
+load();
+</script>
+</body>
+</html>
