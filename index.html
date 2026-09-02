@@ -20,10 +20,12 @@
   h1 { font-size:19px; margin:0 0 2px; }
   .sub { font-size:12px; color:var(--mut); font-weight:normal; }
   #meta { font-size:13px; color:var(--mut); margin:2px 0 10px; }
-  .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
-  button { border:1px solid var(--line); background:var(--card); border-radius:6px;
-           padding:5px 12px; font-size:13px; cursor:pointer; color:var(--txt); }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; align-items:center; }
+  button, .gh-link { border:1px solid var(--line); background:var(--card); border-radius:6px;
+           padding:5px 12px; font-size:13px; cursor:pointer; color:var(--txt); text-decoration:none;
+           display:inline-flex; align-items:center; }
   button.on { background:#1f2328; color:#fff; border-color:#1f2328; }
+  .gh-link:hover { background:#eaeef2; }
   #banner { display:none; background:#1a7f37; color:#fff; border-radius:8px;
             padding:10px 14px; font-size:16px; font-weight:600; margin-bottom:10px; }
   #banner a { color:#fff; text-decoration:underline; margin-right:14px; }
@@ -74,6 +76,7 @@
   <button data-lang="zh">中文</button>
   <button data-lang="en">EN</button>
   <button data-lang="es">ES</button>
+  <a href="https://github.com/aijiesd520/cita_status.github.io" target="_blank" rel="noopener noreferrer" class="gh-link" data-i18n="github_link"></a>
 </div>
 <div id="banner"></div>
 <div id="stale"></div>
@@ -111,8 +114,9 @@ const I18N = {
     filehint: "file:// 无法读取数据文件 —— 请通过 GitHub Pages 访问, 或在本目录运行 python -m http.server 后打开 http://127.0.0.1:8000",
     stale: "⚠ 数据已超过 15 分钟未更新, 监控可能中断",
     updated: "数据更新 {t}（马德里 · {r}）",
+    github_link: "⭐ GitHub 仓库",
     lg1:"有号 1 次", lg2:"有号 2 次", lg3:"有号 3 次", lg4:"有号 4 次", lg5:"有号 5 次", lg6:"有号 6 次",
-    lg_err:"检查出错", lg_no:"无号", lg_none:"未采集/无数据",
+    lg_err:"检查出错 (≥6次)", lg_no:"无号", lg_none:"未采集/无数据",
     has_slots: "有号！", earliest: "最早", office: "地点",
     st_ok: "有号 HAY CITA", st_err: "检查出错", st_no: "无号 NO HAY CITA",
     last_hit: "最近一次有号: ", never: "从未记录到",
@@ -129,8 +133,9 @@ const I18N = {
     filehint: "file:// cannot read the data file — open via GitHub Pages, or run python -m http.server here and open http://127.0.0.1:8000",
     stale: "⚠ No update for over 15 minutes — the monitor may be down",
     updated: "Updated {t} (Madrid · {r})",
+    github_link: "⭐ GitHub Repo",
     lg1:"Available 1×", lg2:"Available 2×", lg3:"Available 3×", lg4:"Available 4×", lg5:"Available 5×", lg6:"Available 6×",
-    lg_err:"Check error", lg_no:"No slots", lg_none:"No data",
+    lg_err:"Errors (≥6)", lg_no:"No slots", lg_none:"No data",
     has_slots: "has slots!", earliest: "Earliest", office: "Office",
     st_ok: "SLOTS AVAILABLE", st_err: "Check error", st_no: "NO SLOTS",
     last_hit: "Last available: ", never: "never recorded",
@@ -147,8 +152,9 @@ const I18N = {
     filehint: "file:// no puede leer el archivo de datos — abra por GitHub Pages, o ejecute python -m http.server aquí y abra http://127.0.0.1:8000",
     stale: "⚠ Más de 15 minutos sin actualizaciones — el monitor puede estar caído",
     updated: "Actualizado {t} (Madrid · {r})",
+    github_link: "⭐ Repositorio GitHub",
     lg1:"Cita 1×", lg2:"Cita 2×", lg3:"Cita 3×", lg4:"Cita 4×", lg5:"Cita 5×", lg6:"Cita 6×",
-    lg_err:"Error de comprobación", lg_no:"No hay cita", lg_none:"Sin datos",
+    lg_err:"Errores (≥6)", lg_no:"No hay cita", lg_none:"Sin datos",
     has_slots: "¡tiene cita!", earliest: "Lo antes", office: "Oficina",
     st_ok: "HAY CITA", st_err: "Error de comprobación", st_no: "NO HAY CITA",
     last_hit: "Última cita: ", never: "nunca registrada",
@@ -335,7 +341,7 @@ function renderBoard(){
       for (let j = 0; j < 48; j++){
         const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0};
         const cls = c.a > 0 ? "g" + Math.min(c.a, 6)
-                  : c.e > 0 ? "ce"
+                  : c.e >= 6 ? "ce"         // 6 个 error 才标红
                   : c.c > 0 ? "cn"          // 检查过但全无号 → 深灰
                   : "";                      // 未采集/无数据 → 浅灰
         const lab = `${rowLabel(day)} ${slotLabel(j)} Madrid`;

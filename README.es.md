@@ -24,11 +24,24 @@ Este proyecto realiza comprobaciones pasivas continuas y visualiza los datos en 
 ## 📊 Leyenda del Panel
 
 - 🟩 **Verde (6 tonalidades)**: Citas disponibles detectadas (más oscuro = mayor frecuencia).
-- 🟥 **Rojo**: Error de comprobación o incidencia de red.
+- 🟥 **Rojo**: Error de comprobación o incidencia de red (≥6 errores consecutivos en el intervalo).
 - ⬛ **Gris oscuro**: Comprobación correcta, sin citas disponibles.
 - ⬜ **Gris claro**: Sin datos o intervalo futuro.
 
 *Nota: Todas las horas corresponden a la **hora oficial de Madrid (España)**.*
+
+---
+
+## ⭐ Apoyo y Contacto
+
+- **Danos una Estrella**: Si este proyecto te resulta útil, ¡apóyanos con una **Estrella ⭐** en GitHub para que más personas puedan conocerlo!
+- **Soporte para más Provincias / Trámites**: Si necesitas monitorizar **más provincias** (p. ej. Alicante, Sevilla, Málaga, Zaragoza, etc.) u **otros trámites** (p. ej. 4036 recogida de tarjeta, 4058 trámites de pasaporte, etc.), no dudes en contactarme.
+- **Contacto / Comunidad en Telegram**:
+
+<div align="center">
+  <img src="qr.png" alt="Telegram QR Code" width="220" />
+  <p><i>Escanea el código QR de arriba para unirte al canal de Telegram o contactar al autor</i></p>
+</div>
 
 ---
 
@@ -38,4 +51,5 @@ Este proyecto realiza comprobaciones pasivas continuas y visualiza los datos en 
 2. **NO se ofrecen servicios de intermediación, reserva, compraventa ni tramitación de citas**.
 3. **NO se recopila ningún tipo de dato personal**.
 4. Las citas deben solicitarse exclusivamente a través de la sede electrónica oficial: [Sede Electrónica - Cita Previa](https://icp.administracionelectronica.gob.es/icpplustiem/citar).
+
 

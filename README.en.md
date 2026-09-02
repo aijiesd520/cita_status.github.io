@@ -24,11 +24,24 @@ This project passively checks appointment availability around the clock and visu
 ## 📊 Legend
 
 - 🟩 **Green (6 levels)**: Available appointment slots detected (darker = more occurrences).
-- 🟥 **Red**: Probe error or network anomaly.
+- 🟥 **Red**: Probe error or network anomaly (≥6 consecutive errors in time slot).
 - ⬛ **Dark Gray**: Probe successful, no slots available.
 - ⬜ **Light Gray**: No data or future time slots.
 
 *Note: All times are displayed in **Spain (Madrid) local time**.*
+
+---
+
+## ⭐ Support & Contact
+
+- **Give a Star**: If you find this project helpful, please consider giving it a **Star ⭐** on GitHub to help more people discover it!
+- **Request More Cities / Procedures**: If you need monitoring for **additional provinces** (e.g. Alicante, Sevilla, Málaga, Zaragoza, etc.) or **other procedures** (e.g. 4036 card pickup, 4058 passport procedures, etc.), feel free to reach out.
+- **Telegram Community / Contact**:
+
+<div align="center">
+  <img src="qr.png" alt="Telegram QR Code" width="220" />
+  <p><i>Scan the QR code above to connect on Telegram</i></p>
+</div>
 
 ---
 
@@ -38,4 +51,5 @@ This project passively checks appointment availability around the clock and visu
 2. We **DO NOT provide booking services, slot purchasing, or automated reservation**.
 3. We **DO NOT collect any personal identifiable information**.
 4. Official booking must be done via the Spanish Government portal: [Sede Electrónica - Cita Previa](https://icp.administracionelectronica.gob.es/icpplustiem/citar).
+
 
