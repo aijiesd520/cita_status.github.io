@@ -1,58 +1,40 @@
-# cita previa 4010 放号监控 · 状态页
+# 🇪🇸 西班牙 Cita Previa (4010 办卡/按指纹) 放号监控看板
 
-中文 | [English](README.en.md) | [Español](README.es.md)
+[中文](README.md) | [English](README.en.md) | [Español](README.es.md)
 
-社区公益项目：对西班牙居留办卡（4010 按指纹）预约放号做被动探测，把"哪个省、什么时候出现过号"公开给约不到号的人。本目录 = GitHub 公开仓库的工作树 + GitHub Pages 站点。
+> 这是一个面向在西华人、留学生及外籍居民的**纯公益、非盈利**预约放号监控项目。旨在提供透明、及时的放号历史与实时状态看板，帮助大家了解各省放号规律，避免因信息不对称而错过预约机会。
 
-**看板**：每城一张实时状态卡 + 一张 GitHub 贡献图样式的表格——7 行（每天一行，旧→新自上而下，今天在最底）× 48 格（每格 30 分钟，00:00→24:00）。有号 1..6 次 = 六档绿由浅到深，出错红，无号深灰，未采集浅灰；行首是日期+星期，底部是小时刻度；手机自适应、点按格子看详情。所有时间均为马德里时间，日期一律 `MM-DD` 格式避免歧义。
+🌐 **在线看板直达**：[https://aijiesd520.github.io/cita_status.github.io/](https://aijiesd520.github.io/cita_status.github.io/)
 
-## 部署 5 步（在跑监控的电脑上）
+---
 
-0. 前提：`monitor/run.py` 已能跑通（见 `../HANDOFF.md`），本机装有 git 和 python3。
+## 📌 项目介绍
 
-1. **GitHub 建一个公开仓库**（如 `cita-status`），开启 Pages：
-   仓库 Settings → Pages → Source 选 `main` 分支 `/ (root)`。
+在西班牙办理居留卡（TIE 办卡/按指纹，业务代码 `4010 - POLICIA-TOMA DE HUELLA (EXPEDICIÓN DE TARJETA)`）常面临“预约难”、“放号时间不透明”等困境。
 
-2. **把本目录变成那个仓库**（首次一次）：
+本项目通过被动探测机制，全天候统计各省份放号动态，并将历史数据可视化为 7 天健康度热力图矩阵。
 
-   ```bash
-   cd monitor/stauts_page
-   git init
-   git add -A
-   git commit -m "status page 初版"
-   git branch -M main
-   git remote add origin https://github.com/<你的用户名>/cita-status.git
-   git push -u origin main
-   ```
+### ✨ 核心功能
+- **实时放号状态**：清晰展示马德里（Madrid）、巴塞罗那（Barcelona）、瓦伦西亚（Valencia）等各大省份当前是否有号。
+- **7 天历史热力图**：按马德里本地时间（30 分钟粒度）绘制 7 天放号矩阵（每天 48 格，00:00 至 24:00），直观反映各省份的历史放号时段。
+- **纯净轻量**：纯静态前端，无第三方追踪脚本，支持电脑与手机自适应访问。
 
-   凭据用系统凭据管理器（Windows: Git Credential Manager）保存，**不要把 token 写进任何文件**。
-   git 用户名/邮箱没配过的话先 `git config --global user.name/user.email`。
+---
 
-3. **监控节奏**：`monitor/.env` 的 `DELAY=300`（默认值，即 5 分钟一轮，与页面 30 分钟格/六档绿配套）。
+## 📊 看板图例说明
 
-4. **与 run.py 同时常驻推送脚本**（监控每写一轮 status.json，它就追加一行历史并 push）：
+- 🟩 **绿色（1~6 档深浅）**：当前时段检测到有可预约号源（颜色越深代表出现频次越高）。
+- 🟥 **红色**：服务异常或网络波动。
+- ⬛ **深灰色**：探测正常，当前时段暂无号源。
+- ⬜ **浅灰色**：无数据或未来时段。
 
-   ```bash
-   python run.py                # 窗口 A: 探针监控（现有）
-   python push_github.py        # 窗口 B: 推送 + GitHub Pages 数据源
-   ```
+*注：页面展示的所有时间均为**西班牙马德里时间**。*
 
-5. **验证**：浏览器打开 `https://<你的用户名>.github.io/cita-status/`。
-   Pages 首次构建要 1-2 分钟；之后每次 push 最长再延迟 ~10 分钟（Pages 缓存）。
+---
 
-## 本地预览 / 验收配色
+## ⚠️ 免责声明
 
-```bash
-python push_github.py --selftest   # 推送脚本自检
-python demo.py                     # 生成假数据（会清空 d/！）
-python -m http.server              # 打开 http://127.0.0.1:8000
-```
+1. 本项目为**纯公益性质**，仅做客观放号状态探测与历史规律展示。
+2. 本项目**不提供任何代约、代抢号、预约买卖服务**，也**绝不收集任何用户个人身份信息**。
+3. 预约请务必前往西班牙移民局官方预约平台办理：[Sede Electrónica - Cita Previa de Extranjería](https://icp.administracionelectronica.gob.es/icpplustiem/citar)。
 
-demo 数据是假的——**推公开仓库前删掉 `d/` 再推**。
-
-## 说明
-
-- 公开仓库 = 全部探测数据公开（公益目的，确认可接受再用）。
-- 每轮 1 个 commit（5 分钟一轮 ≈ 288/天），GitHub 无硬性限制；若在意可在 push_github.py 里改批量推送（未实现）。
-- `.env` 的 `PUSH_URL` 保持留空：推送由本目录脚本负责，二者不并用。
-- 二次开发 / 换机部署 / 排错：**先读 `HANDOFF.md`**（面向 agent 的交接文档）。

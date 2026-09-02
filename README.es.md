@@ -1,58 +1,41 @@
-# Monitor de citas Cita Previa 4010 · Página de estado
+# 🇪🇸 Monitor de Cita Previa (4010 Toma de Huellas / TIE)
 
-[中文](README.md) | [English](README.en.md) | Español
+[中文](README.md) | [English](README.en.md) | [Español](README.es.md)
 
-Proyecto comunitario sin ánimo de lucro: monitorización pasiva de la disponibilidad de citas para la toma de huellas del permiso de residencia en España (trámite 4010), publicando «qué provincia tuvo citas y cuándo» para quienes no consiguen cita. Este directorio = el árbol de trabajo del repositorio público de GitHub + el sitio de GitHub Pages.
+> Proyecto **sin fines de lucro y de interés público** para la monitorización de disponibilidad de citas previas de extranjería en España. Proporciona un panel transparente en tiempo real y mapa de calor histórico para ayudar a los solicitantes a conocer los patrones de apertura de citas.
 
-**Panel**: una tarjeta de estado en vivo por provincia + una tabla al estilo del gráfico de contribuciones de GitHub — 7 filas (una por día, de más antigua a más reciente de arriba abajo, hoy en la última fila) × 48 celdas (30 min cada una, 00:00→24:00). De 1 a 6 aciertos con cita = seis tonos de verde de claro a oscuro, errores en rojo, «no hay cita» en gris oscuro, «sin datos» en gris claro. Las filas llevan fecha y día de la semana, con regla de horas abajo. Adaptado al móvil (las celdas se ajustan a la pantalla; toca una celda para ver detalles). Todas las horas son de Madrid; las fechas siempre en formato inequívoco `MM-DD`.
+🌐 **Panel en directo**: [https://aijiesd520.github.io/cita_status.github.io/](https://aijiesd520.github.io/cita_status.github.io/)
 
-## Despliegue en 5 pasos (en la máquina que ejecuta el monitor)
+---
 
-0. Requisitos: `monitor/run.py` funcionando (ver `../HANDOFF.md`); git y Python 3 instalados.
+## 📌 Acerca del Proyecto
 
-1. **Crea un repositorio público en GitHub** (p. ej. `cita-status`) y activa Pages:
-   Settings → Pages → Source: rama `main`, `/ (root)`.
+Conseguir cita para la expedición de tarjeta de identidad de extranjero (`4010 - POLICIA-TOMA DE HUELLA (EXPEDICIÓN DE TARJETA)`) suele ser complicado debido a la falta de regularidad y transparencia en la liberación de citas.
 
-2. **Convierte este directorio en ese repositorio** (solo la primera vez):
+Este proyecto realiza comprobaciones pasivas continuas y visualiza los datos en un mapa de calor de disponibilidad de los últimos 7 días.
 
-   ```bash
-   cd monitor/stauts_page
-   git init
-   git add -A
-   git commit -m "status page"
-   git branch -M main
-   git remote add origin https://github.com/<tu-usuario>/cita-status.git
-   git push -u origin main
-   ```
+### ✨ Características
+- **Estado en tiempo real**: Visibilidad instantánea de citas disponibles en Madrid, Barcelona, Valencia y otras provincias.
+- **Mapa de calor de 7 días**: 48 intervalos diarios (bloques de 30 minutos de 00:00 a 24:00 hora de Madrid) que reflejan los patrones históricos de liberación de citas.
+- **Ligero y seguro**: Sitio estático sin rastreadores de terceros, completamente adaptable a dispositivos móviles y escritorio.
 
-   Guarda las credenciales en el gestor de credenciales del sistema (Windows: Git Credential Manager). **Nunca guardes un token en ningún archivo.**
-   Si git user.name/email no están configurados: `git config --global user.name/user.email` primero.
+---
 
-3. **Cadencia de sondeo**: `DELAY=300` en `monitor/.env` (valor por defecto; una ronda cada 5 minutos, acorde con las celdas de 30 min / seis tonos de verde).
+## 📊 Leyenda del Panel
 
-4. **Ejecuta el script de push junto a run.py** (cada ronda escrita en status.json se añade al historial y se publica):
+- 🟩 **Verde (6 tonalidades)**: Citas disponibles detectadas (más oscuro = mayor frecuencia).
+- 🟥 **Rojo**: Error de comprobación o incidencia de red.
+- ⬛ **Gris oscuro**: Comprobación correcta, sin citas disponibles.
+- ⬜ **Gris claro**: Sin datos o intervalo futuro.
 
-   ```bash
-   python run.py                # terminal A: monitor de sondeo (existente)
-   python push_github.py        # terminal B: push + fuente de datos de Pages
-   ```
+*Nota: Todas las horas corresponden a la **hora oficial de Madrid (España)**.*
 
-5. **Verifica**: abre `https://<tu-usuario>.github.io/cita-status/`.
-   La primera compilación de Pages tarda 1–2 minutos; después, cada push puede tardar ~10 minutos más (caché de Pages).
+---
 
-## Vista local / aceptación de colores
+## ⚠️ Descargo de Responsabilidad
 
-```bash
-python push_github.py --selftest   # autotest del script de push
-python demo.py                     # genera datos falsos (¡borra d/!)
-python -m http.server              # abre http://127.0.0.1:8000
-```
+1. Este proyecto es **estrictamente informativo y sin ánimo de lucro**.
+2. **NO se ofrecen servicios de intermediación, reserva, compraventa ni tramitación de citas**.
+3. **NO se recopila ningún tipo de dato personal**.
+4. Las citas deben solicitarse exclusivamente a través de la sede electrónica oficial: [Sede Electrónica - Cita Previa](https://icp.administracionelectronica.gob.es/icpplustiem/citar).
 
-Los datos de demo son falsos — **borra `d/` antes de publicar al repositorio público**.
-
-## Notas
-
-- Repositorio público = todos los datos de sondeo son públicos (es el objetivo; asegúrate de que es aceptable).
-- 1 commit por ronda (cada 5 min ≈ 288/día); GitHub no tiene límite estricto. Si importara, agrupa pushes en push_github.py (no implementado).
-- Deja `PUSH_URL` vacío en `.env`: la publicación la gestiona el script de este directorio; no uses ambos.
-- Para desarrollo / migrar de máquina / resolución de problemas: **lee primero `HANDOFF.md`** (documento de traspaso para agentes).

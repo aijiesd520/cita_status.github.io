@@ -1,58 +1,41 @@
-# Cita Previa 4010 Slot Monitor · Status Page
+# 🇪🇸 Spain Cita Previa (4010 Fingerprint / TIE Card) Slot Monitor
 
-[中文](README.md) | English | [Español](README.es.md)
+[中文](README.md) | [English](README.en.md) | [Español](README.es.md)
 
-A community, non-profit project: passive monitoring of appointment availability for the Spanish residence-card fingerprinting procedure (4010), publishing "which province had slots, and when" for people who cannot get an appointment. This directory = the working tree of the public GitHub repository + the GitHub Pages site.
+> A **non-profit, public-interest** monitoring project for Spain residency appointment availability. Provides transparent and real-time appointment status and historical heatmap to help applicants track availability patterns.
 
-**Dashboard**: one live status card per province + one GitHub-contribution-graph-style table — 7 rows (one per day, oldest → newest top to bottom, today on the last row) × 48 cells (30 min each, 00:00→24:00). 1..6 availability hits = six shades of green from light to dark, errors red, "no slots" dark gray, "no data" light gray. Row labels are date + weekday, hour ruler at the bottom. Mobile-friendly (cells scale to the screen, tap a cell for details). All times are Madrid time; dates are always in unambiguous `MM-DD` format.
+🌐 **Live Dashboard**: [https://aijiesd520.github.io/cita_status.github.io/](https://aijiesd520.github.io/cita_status.github.io/)
 
-## Deployment in 5 steps (on the machine running the monitor)
+---
 
-0. Prerequisites: `monitor/run.py` already works (see `../HANDOFF.md`); git and Python 3 installed.
+## 📌 About The Project
 
-1. **Create a public GitHub repository** (e.g. `cita-status`) and enable Pages:
-   repo Settings → Pages → Source: `main` branch, `/ (root)`.
+Securing an appointment for residency card issuance / fingerprinting in Spain (`4010 - POLICIA-TOMA DE HUELLA (EXPEDICIÓN DE TARJETA)`) is often difficult due to unpredictable slot releases and lack of transparency.
 
-2. **Turn this directory into that repository** (first time only):
+This project passively checks appointment availability around the clock and visualizes the results in a 7-day slot availability heatmap.
 
-   ```bash
-   cd monitor/stauts_page
-   git init
-   git add -A
-   git commit -m "status page"
-   git branch -M main
-   git remote add origin https://github.com/<your-user>/cita-status.git
-   git push -u origin main
-   ```
+### ✨ Features
+- **Real-Time Status**: Instant overview of slot availability across Madrid, Barcelona, Valencia, and other provinces.
+- **7-Day Historical Heatmap**: 48 slots per day (30-minute intervals from 00:00 to 24:00 Madrid time) reflecting historical release trends.
+- **Lightweight & Privacy-First**: Pure static site with zero external trackers, fully responsive on mobile and desktop.
 
-   Store credentials in the system credential manager (Windows: Git Credential Manager). **Never put a token into any file.**
-   If git user.name/email are not configured yet: `git config --global user.name/user.email` first.
+---
 
-3. **Monitoring cadence**: `DELAY=300` in `monitor/.env` (the default; one round every 5 minutes, matching the 30-minute cells / six green shades).
+## 📊 Legend
 
-4. **Run the pusher alongside run.py** (each round written to status.json is appended to the history and pushed):
+- 🟩 **Green (6 levels)**: Available appointment slots detected (darker = more occurrences).
+- 🟥 **Red**: Probe error or network anomaly.
+- ⬛ **Dark Gray**: Probe successful, no slots available.
+- ⬜ **Light Gray**: No data or future time slots.
 
-   ```bash
-   python run.py                # terminal A: the probe monitor (existing)
-   python push_github.py        # terminal B: push + GitHub Pages data source
-   ```
+*Note: All times are displayed in **Spain (Madrid) local time**.*
 
-5. **Verify**: open `https://<your-user>.github.io/cita-status/`.
-   First Pages build takes 1–2 minutes; afterwards each push may take up to ~10 more minutes (Pages cache).
+---
 
-## Local preview / color acceptance
+## ⚠️ Disclaimer
 
-```bash
-python push_github.py --selftest   # pusher self-test
-python demo.py                     # generate fake data (wipes d/!)
-python -m http.server              # open http://127.0.0.1:8000
-```
+1. This project is **strictly non-profit and informational**, providing only status checks and historical statistics.
+2. We **DO NOT provide booking services, slot purchasing, or automated reservation**.
+3. We **DO NOT collect any personal identifiable information**.
+4. Official booking must be done via the Spanish Government portal: [Sede Electrónica - Cita Previa](https://icp.administracionelectronica.gob.es/icpplustiem/citar).
 
-Demo data is fake — **delete `d/` before pushing to the public repository**.
-
-## Notes
-
-- A public repository = all probe data is public (by design, non-profit; make sure that is acceptable).
-- 1 commit per round (5-min cadence ≈ 288/day); GitHub has no hard limit. If it ever matters, batch pushes in push_github.py (not implemented).
-- Keep `PUSH_URL` in `.env` empty: pushing is handled by this directory's script; do not use both.
-- For further development / migrating machines / troubleshooting: **read `HANDOFF.md` first** (agent-facing handoff document).
