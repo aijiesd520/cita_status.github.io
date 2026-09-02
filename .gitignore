@@ -1,4 +1,4 @@
-# 仅公开 index.html, README.md 与数据目录 d/
+# 仅公开 index.html, README*.md 与数据目录 d/
 # 忽略内部交接文档、本地测试脚本、推送器脚本与日志
 HANDOFF.md
 demo.py
@@ -6,5 +6,7 @@ push_github.py
 push.log
 *.log
 .env*
+.DS_Store
+
 
 
