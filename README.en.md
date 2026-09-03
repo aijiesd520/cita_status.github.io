@@ -23,8 +23,8 @@ This project passively checks appointment availability around the clock and visu
 
 ## 📊 Legend
 
-- 🟩 **Green (6 levels)**: Available appointment slots detected (darker = more occurrences).
-- 🟥 **Red**: Probe error or network anomaly (≥6 consecutive errors in time slot).
+- 🟩 **Green Gradient (Less ↔ More)**: Available appointment slots detected; dynamically rendered as a continuous gradient based on relative slot availability density (light green = fewer hits, dark green = sustained availability).
+- 🟥 **Red**: Probe error or network anomaly (frequent probe errors in time slot).
 - ⬛ **Dark Gray**: Probe successful, no slots available.
 - ⬜ **Light Gray**: No data or future time slots.
 

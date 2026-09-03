@@ -33,6 +33,9 @@
            border-radius:6px; padding:8px 12px; font-size:13px; margin-bottom:10px; }
   #legend { display:flex; flex-wrap:wrap; gap:6px 12px; font-size:12px; color:var(--mut);
             margin:0 0 10px; align-items:center; }
+  .leg-scale { display:inline-flex; align-items:center; gap:4px; }
+  .sw-grad { display:inline-block; width:64px; height:11px; border-radius:2px; margin:0 4px;
+             vertical-align:-1px; background:linear-gradient(to right, var(--g1), var(--g2), var(--g3), var(--g4), var(--g5), var(--g6)); }
   .sw { display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:4px;
         vertical-align:-1px; background:var(--cx); }
   #cellinfo { display:none; background:var(--card); border:1px solid var(--line);
@@ -81,12 +84,12 @@
 <div id="banner"></div>
 <div id="stale"></div>
 <div id="legend">
-  <span><span class="sw" style="background:var(--g1)"></span><span data-i18n="lg1"></span></span>
-  <span><span class="sw" style="background:var(--g2)"></span><span data-i18n="lg2"></span></span>
-  <span><span class="sw" style="background:var(--g3)"></span><span data-i18n="lg3"></span></span>
-  <span><span class="sw" style="background:var(--g4)"></span><span data-i18n="lg4"></span></span>
-  <span><span class="sw" style="background:var(--g5)"></span><span data-i18n="lg5"></span></span>
-  <span><span class="sw" style="background:var(--g6)"></span><span data-i18n="lg6"></span></span>
+  <span class="leg-scale">
+    <span data-i18n="lg_slots"></span>:
+    <span data-i18n="lg_less"></span>
+    <span class="sw-grad"></span>
+    <span data-i18n="lg_more"></span>
+  </span>
   <span><span class="sw" style="background:var(--ce)"></span><span data-i18n="lg_err"></span></span>
   <span><span class="sw" style="background:var(--cn)"></span><span data-i18n="lg_no"></span></span>
   <span><span class="sw"></span><span data-i18n="lg_none"></span></span>
@@ -108,15 +111,15 @@ let docs = [];             // 已加载的每轮文档, _t = epoch ms
 const I18N = {
   zh: {
     title: "Cita Previa 4010 放号监控",
-    subtitle: "按指纹 · 每 5 分钟探测 · 马德里时间",
+    subtitle: "按指纹 · 每 1 分钟探测 · 马德里时间",
     refresh: "刷新", loading: "加载中…", nodata: "暂无数据, 等待第一轮采集…",
     loadfail: "加载数据失败, 60 秒后自动重试",
     filehint: "file:// 无法读取数据文件 —— 请通过 GitHub Pages 访问, 或在本目录运行 python -m http.server 后打开 http://127.0.0.1:8000",
-    stale: "⚠ 数据已超过 15 分钟未更新, 监控可能中断",
+    stale: "⚠ 数据已超过 45 分钟未更新, 监控可能中断",
     updated: "数据更新 {t}（马德里 · {r}）",
     github_link: "⭐ GitHub 仓库",
-    lg1:"有号 1 次", lg2:"有号 2 次", lg3:"有号 3 次", lg4:"有号 4 次", lg5:"有号 5 次", lg6:"有号 6 次",
-    lg_err:"检查出错 (≥6次)", lg_no:"无号", lg_none:"未采集/无数据",
+    lg_slots: "有号", lg_less: "少", lg_more: "多",
+    lg_err: "检查出错", lg_no: "无号", lg_none: "未采集/无数据",
     has_slots: "有号！", earliest: "最早", office: "地点",
     st_ok: "有号 HAY CITA", st_err: "检查出错", st_no: "无号 NO HAY CITA",
     last_hit: "最近一次有号: ", never: "从未记录到",
@@ -127,15 +130,15 @@ const I18N = {
   },
   en: {
     title: "Cita Previa 4010 Slot Monitor",
-    subtitle: "Fingerprinting · 5-min checks · Madrid time",
+    subtitle: "Fingerprinting · 1-min checks · Madrid time",
     refresh: "Refresh", loading: "Loading…", nodata: "No data yet — waiting for the first round…",
     loadfail: "Failed to load data — retrying in 60 s",
     filehint: "file:// cannot read the data file — open via GitHub Pages, or run python -m http.server here and open http://127.0.0.1:8000",
-    stale: "⚠ No update for over 15 minutes — the monitor may be down",
+    stale: "⚠ No update for over 45 minutes — the monitor may be down",
     updated: "Updated {t} (Madrid · {r})",
     github_link: "⭐ GitHub Repo",
-    lg1:"Available 1×", lg2:"Available 2×", lg3:"Available 3×", lg4:"Available 4×", lg5:"Available 5×", lg6:"Available 6×",
-    lg_err:"Errors (≥6)", lg_no:"No slots", lg_none:"No data",
+    lg_slots: "Slots", lg_less: "Less", lg_more: "More",
+    lg_err: "Errors", lg_no: "No slots", lg_none: "No data",
     has_slots: "has slots!", earliest: "Earliest", office: "Office",
     st_ok: "SLOTS AVAILABLE", st_err: "Check error", st_no: "NO SLOTS",
     last_hit: "Last available: ", never: "never recorded",
@@ -146,15 +149,15 @@ const I18N = {
   },
   es: {
     title: "Monitor de citas Cita Previa 4010",
-    subtitle: "Toma de huellas · sondeo cada 5 min · hora de Madrid",
+    subtitle: "Toma de huellas · sondeo cada 1 min · hora de Madrid",
     refresh: "Actualizar", loading: "Cargando…", nodata: "Sin datos todavía — esperando la primera ronda…",
     loadfail: "No se pudieron cargar los datos — reintentando en 60 s",
     filehint: "file:// no puede leer el archivo de datos — abra por GitHub Pages, o ejecute python -m http.server aquí y abra http://127.0.0.1:8000",
-    stale: "⚠ Más de 15 minutos sin actualizaciones — el monitor puede estar caído",
+    stale: "⚠ Más de 45 minutos sin actualizaciones — el monitor puede estar caído",
     updated: "Actualizado {t} (Madrid · {r})",
     github_link: "⭐ Repositorio GitHub",
-    lg1:"Cita 1×", lg2:"Cita 2×", lg3:"Cita 3×", lg4:"Cita 4×", lg5:"Cita 5×", lg6:"Cita 6×",
-    lg_err:"Errores (≥6)", lg_no:"No hay cita", lg_none:"Sin datos",
+    lg_slots: "Citas", lg_less: "Menos", lg_more: "Más",
+    lg_err: "Errores", lg_no: "No hay cita", lg_none: "Sin datos",
     has_slots: "¡tiene cita!", earliest: "Lo antes", office: "Oficina",
     st_ok: "HAY CITA", st_err: "Error de comprobación", st_no: "NO HAY CITA",
     last_hit: "Última cita: ", never: "nunca registrada",
@@ -244,7 +247,7 @@ function render(){
   const latest = docs[docs.length - 1];
   document.getElementById("meta").textContent =
     t("updated").replace("{t}", zhDT(latest._t)).replace("{r}", rel(Date.now()-latest._t));
-  setStale(Date.now() - latest._t > 15*60000);
+  setStale(Date.now() - latest._t > 45*60000);
   const availNow = (latest.results || []).filter(r => r.available);
   setBanner(availNow.length ? availNow : null);
   renderCards(latest);
@@ -304,6 +307,28 @@ function rowLabel(key, todayKey){          // "YYYY-MM-DD" -> "09-01 周二 / Tu
   const wd = I18N[lang].wd[new Date(key + "T12:00:00Z").getUTCDay()];
   return `${m}-${d} ${lang === "zh" ? "周" + wd : wd}`;
 }
+// 连续绿色渐变色阶插值定义 (Less #9be9a8 -> More #116329)
+const GREEN_RAMP = [
+  [155, 233, 168], // #9be9a8 (Stop 0: Less)
+  [108, 198, 117], // #6cc675 (Stop 1)
+  [64,  196, 99],  // #40c463 (Stop 2)
+  [45,  164, 78],  // #2da44e (Stop 3)
+  [26,  127, 55],  // #1a7f37 (Stop 4)
+  [17,  99,  41]   // #116329 (Stop 5: More)
+];
+function greenRamp(tVal){
+  const cl = Math.max(0, Math.min(1, tVal));
+  const pos = cl * (GREEN_RAMP.length - 1);
+  const idx = Math.min(Math.floor(pos), GREEN_RAMP.length - 2);
+  const frac = pos - idx;
+  const [r1, g1, b1] = GREEN_RAMP[idx];
+  const [r2, g2, b2] = GREEN_RAMP[idx + 1];
+  const r = Math.round(r1 + (r2 - r1) * frac);
+  const g = Math.round(g1 + (g2 - g1) * frac);
+  const b = Math.round(b1 + (b2 - b1) * frac);
+  return `rgb(${r},${g},${b})`;
+}
+
 function renderBoard(){
   const todayKey = fmtDayKey.format(Date.now());
   const [ty,tm,td] = todayKey.split("-").map(Number);
@@ -326,11 +351,29 @@ function renderBoard(){
     const j = (+hm.slice(0,2))*2 + (+hm.slice(3,5) >= 30 ? 1 : 0);
     const key = fmtDayKey.format(tt) + "|" + j;
     const c = o.cells.get(key) || {c:0, a:0, e:0};
-    c.c++; if (r.available) c.a++; if (r.status === "error") c.e++;
+    const checks = typeof r.checks_count === "number" ? r.checks_count : 1;
+    const available = typeof r.available_count === "number" ? r.available_count : (r.available ? 1 : 0);
+    const errors = typeof r.error_count === "number" ? r.error_count : (r.status === "error" ? 1 : 0);
+    c.c += checks;
+    c.a += available;
+    c.e += errors;
     o.cells.set(key, c);
   }
-  const order = (docs[docs.length-1].results || []).map(r => r.province);   // 城市序=最新一轮
+  const latestDoc = docs.length ? docs[docs.length-1] : null;
+  const order = (latestDoc && latestDoc.results ? latestDoc.results : []).map(r => r.province);   // 城市序=最新一轮
   const ordered = [...provs.entries()].sort((a,b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+
+  // 计算当前全局最大有号密度 (用于动态相对渐变归一化)
+  let maxDensity = 0;
+  for (const [, o] of ordered){
+    for (const c of o.cells.values()){
+      if (c.a > 0 && c.c > 0){
+        const d = c.a / c.c;
+        if (d > maxDensity) maxDensity = d;
+      }
+    }
+  }
+  const scaleMax = Math.max(maxDensity, 0.20);
 
   let html = "";
   for (const [, o] of ordered){
@@ -340,13 +383,21 @@ function renderBoard(){
       let cells = "";
       for (let j = 0; j < 48; j++){
         const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0};
-        const cls = c.a > 0 ? "g" + Math.min(c.a, 6)
-                  : c.e >= 6 ? "ce"         // 6 个 error 才标红
-                  : c.c > 0 ? "cn"          // 检查过但全无号 → 深灰
-                  : "";                      // 未采集/无数据 → 浅灰
+        let bgStyle = "";
+        let cls = "";
+        if (c.a > 0){
+          const d = c.c > 0 ? (c.a / c.c) : 1;
+          const rel = Math.min(1, d / scaleMax);
+          bgStyle = ` style="background:${greenRamp(rel)}"`;
+        } else if (c.e >= 6 || (c.c > 0 && (c.e / c.c) >= 0.5)){
+          cls = " ce";
+        } else if (c.c > 0){
+          cls = " cn";
+        }
         const lab = `${rowLabel(day)} ${slotLabel(j)} Madrid`;
-        const cnt = `${t("checks")} ${c.c} · ${t("slots")} ${c.a} · ${t("errors")} ${c.e}`;
-        cells += `<span class="cell ${cls}" data-t="${lab}|${cnt}" title="${lab}&#10;${cnt}"></span>`;
+        const pct = c.c > 0 ? ` (${Math.round((c.a / c.c) * 100)}%)` : "";
+        const cnt = `${t("checks")} ${c.c} · ${t("slots")} ${c.a}${pct} · ${t("errors")} ${c.e}`;
+        cells += `<span class="cell${cls}"${bgStyle} data-t="${lab}|${cnt}" title="${lab}&#10;${cnt}"></span>`;
       }
       html += `<div class="row${day===todayKey ? " today" : ""}"><span class="rlabel">${rowLabel(day)}</span><div class="cells">${cells}</div></div>`;
     }

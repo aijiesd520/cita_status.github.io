@@ -23,8 +23,8 @@ Este proyecto realiza comprobaciones pasivas continuas y visualiza los datos en 
 
 ## 📊 Leyenda del Panel
 
-- 🟩 **Verde (6 tonalidades)**: Citas disponibles detectadas (más oscuro = mayor frecuencia).
-- 🟥 **Rojo**: Error de comprobación o incidencia de red (≥6 errores consecutivos en el intervalo).
+- 🟩 **Gradiente Verde (Menos ↔ Más)**: Citas disponibles detectadas; se calcula dinámicamente como un gradiente continuo según la densidad relativa de citas en el intervalo de 30 minutos (verde claro = menor frecuencia, verde oscuro = disponibilidad sostenida).
+- 🟥 **Rojo**: Error de comprobación o incidencia de red (errores frecuentes en el intervalo).
 - ⬛ **Gris oscuro**: Comprobación correcta, sin citas disponibles.
 - ⬜ **Gris claro**: Sin datos o intervalo futuro.
 
