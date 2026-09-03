@@ -389,7 +389,7 @@ function renderBoard(){
           const d = c.c > 0 ? (c.a / c.c) : 1;
           const rel = Math.min(1, d / scaleMax);
           bgStyle = ` style="background:${greenRamp(rel)}"`;
-        } else if (c.e >= 6 || (c.c > 0 && (c.e / c.c) >= 0.5)){
+        } else if (c.e >= 6){
           cls = " ce";
         } else if (c.c > 0){
           cls = " cn";
