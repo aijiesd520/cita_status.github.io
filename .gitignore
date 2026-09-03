@@ -5,6 +5,7 @@ demo.py
 push_github.py
 push.log
 *.log
+*.txt
 .env*
 .DS_Store
 
