@@ -106,6 +106,10 @@ const fmtHM    = new Intl.DateTimeFormat("es-ES", {timeZone:MAD, hour:"2-digit",
 const fmtDayKey= new Intl.DateTimeFormat("en-CA", {timeZone:MAD});   // YYYY-MM-DD
 
 let docs = [];             // 已加载的每轮文档, _t = epoch ms
+// 只展示监控中的省 (2026-09-06 起移除 Las Palmas "35")。
+// 必须在顶层声明: render()/renderCards()/renderBoard() 三处都用 — 曾误放 renderBoard()
+// 函数内, render() 先行触发 ReferenceError 导致整页数据渲染不出 (2026-09-06 实证)
+const SHOW_PROVINCES = ["28", "8", "46"];
 
 /* ---- i18n: zh / en / es ---- */
 const I18N = {
@@ -341,8 +345,6 @@ function renderBoard(){
   // 去重 (province|checked_at): jsonl 每行是全省快照, 任一省更新就整包追加推送,
   // 未更新的省行被原样复制 N 次 — 不去重则格子计数膨胀 ~3-4 倍 (2026-09-06 实测:
   // 真实 150 次 → 显示 588 次). 同一检查只计首次出现, 历史数据随读随修.
-  // SHOW_PROVINCES: 只展示监控中的省 (2026-09-06 起移除 Las Palmas "35")
-  const SHOW_PROVINCES = ["28", "8", "46"];
   const provs = new Map();
   const seenCheck = new Set();
   for (const doc of docs) for (const r of (doc.results || [])){
