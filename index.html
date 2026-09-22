@@ -6,83 +6,643 @@
 <title>Cita Previa 4010 放号监控</title>
 <style>
   :root {
-    --bg:#f6f8fa; --card:#fff; --line:#d0d7de; --txt:#1f2328; --mut:#656d76;
-    --cw:11px; --cg:2px; --lw:86px;
-    --g1:#9be9a8; --g2:#6cc675; --g3:#40c463; --g4:#2da44e; --g5:#1a7f37; --g6:#116329;
-    --ce:#cf222e; --cn:#57606a; --cx:#ebedf0;
+    --bg: #0b0f19;
+    --bg-subtle: #111827;
+    --card: #151e32;
+    --card-hover: #1c2742;
+    --line: #22304d;
+    --line-subtle: #1a253c;
+    --txt: #f1f5f9;
+    --mut: #94a3b8;
+    --accent: #10b981;
+    --accent-glow: rgba(16, 185, 129, 0.25);
+    --amber: #f59e0b;
+    --amber-glow: rgba(245, 158, 11, 0.2);
+    --cw: 12px;
+    --cg: 2px;
+    --lw: 96px;
+    --g1: #9be9a8; --g2: #6cc675; --g3: #40c463; --g4: #2da44e; --g5: #1a7f37; --g6: #116329;
+    --ce: #ef4444; --cn: #22304a; --cx: #141c2c;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   }
-  @media (max-width: 760px) {
-    :root { --cw: max(5px, calc((100vw - 148px)/48)); --cg:1px; --lw:74px; }
+
+  @media (max-width: 768px) {
+    :root {
+      --cw: 10px;
+      --cg: 1.5px;
+      --lw: 78px;
+    }
   }
-  * { box-sizing:border-box; }
-  body { margin:0; padding:14px; background:var(--bg); color:var(--txt);
-         font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; font-size:15px; }
-  h1 { font-size:19px; margin:0 0 2px; }
-  .sub { font-size:12px; color:var(--mut); font-weight:normal; }
-  #meta { font-size:13px; color:var(--mut); margin:2px 0 10px; }
-  .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; align-items:center; }
-  button, .gh-link { border:1px solid var(--line); background:var(--card); border-radius:6px;
-           padding:5px 12px; font-size:13px; cursor:pointer; color:var(--txt); text-decoration:none;
-           display:inline-flex; align-items:center; }
-  button.on { background:#1f2328; color:#fff; border-color:#1f2328; }
-  .gh-link:hover { background:#eaeef2; }
-  #banner { display:none; background:#1a7f37; color:#fff; border-radius:8px;
-            padding:10px 14px; font-size:16px; font-weight:600; margin-bottom:10px; }
-  #banner a { color:#fff; text-decoration:underline; margin-right:14px; }
-  #stale { display:none; background:#fff8c6; color:#6b5300; border:1px solid #e6d178;
-           border-radius:6px; padding:8px 12px; font-size:13px; margin-bottom:10px; }
-  #legend { display:flex; flex-wrap:wrap; gap:6px 12px; font-size:12px; color:var(--mut);
-            margin:0 0 10px; align-items:center; }
-  .leg-scale { display:inline-flex; align-items:center; gap:4px; }
-  .sw-grad { display:inline-block; width:64px; height:11px; border-radius:2px; margin:0 4px;
-             vertical-align:-1px; background:linear-gradient(to right, var(--g1), var(--g2), var(--g3), var(--g4), var(--g5), var(--g6)); }
-  .sw { display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:4px;
-        vertical-align:-1px; background:var(--cx); }
-  #cellinfo { display:none; background:var(--card); border:1px solid var(--line);
-              border-radius:6px; padding:6px 10px; font-size:13px; margin-bottom:10px; }
-  #cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-           gap:10px; margin-bottom:14px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
-          padding:12px 14px; }
-  .card .head { display:flex; justify-content:space-between; align-items:baseline; }
-  .card .name { font-size:15px; font-weight:700; }
-  .card .at { font-size:12px; color:var(--mut); }
-  .card .state { font-size:18px; font-weight:700; margin:5px 0 3px; color:#57606a; }
-  .card .det { font-size:13px; line-height:1.55; color:#424a53; }
-  .card .last { font-size:12px; color:var(--mut); margin-top:6px; border-top:1px dashed var(--line); padding-top:6px; }
-  .card.ok .state { color:#1a7f37; }
-  .card.err .state { color:#cf222e; }
-  .city { background:var(--card); border:1px solid var(--line); border-radius:10px;
-          padding:12px; margin-bottom:12px; overflow-x:auto; }
-  .chead { font-size:15px; font-weight:700; margin-bottom:8px; }
-  .row { display:flex; align-items:center; margin-bottom:var(--cg); }
-  .rlabel { flex:none; width:var(--lw); font-size:12px; color:var(--mut); white-space:nowrap; }
-  .row.today .rlabel { color:#1a7f37; font-weight:700; }
-  .cells { display:grid; grid-template-columns:repeat(48, var(--cw)); gap:var(--cg); }
-  .cell { width:var(--cw); height:var(--cw); border-radius:3px; background:var(--cx); cursor:pointer; }
-  .g1{background:var(--g1)} .g2{background:var(--g2)} .g3{background:var(--g3)}
-  .g4{background:var(--g4)} .g5{background:var(--g5)} .g6{background:var(--g6)}
-  .ce{background:var(--ce)} .cn{background:var(--cn)}
-  .cell.sel { outline:2px solid #0969da; outline-offset:1px; }
-  .hours { margin-top:2px; }
-  .hours span { font-size:10px; color:var(--mut); }
-  footer { font-size:12px; color:var(--mut); margin-top:8px; line-height:1.7; }
-  #msg { padding:20px; text-align:center; color:var(--mut); background:var(--card);
-         border:1px solid var(--line); border-radius:10px; margin-bottom:12px; }
+
+  * { box-sizing: border-box; }
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  body {
+    margin: 0;
+    padding: 16px;
+    background: var(--bg);
+    color: var(--txt);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.3px;
+    color: #f8fafc;
+  }
+  .sub {
+    font-size: 13px;
+    color: var(--mut);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  #meta {
+    font-size: 13px;
+    color: var(--mut);
+    margin: 4px 0 12px;
+  }
+
+  /* Control buttons & header links */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  button, .gh-link {
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--txt);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.15s ease;
+  }
+  button:hover, .gh-link:hover {
+    background: var(--card-hover);
+    border-color: #3b82f6;
+  }
+  button.on {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+  }
+
+  /* Active appointment glowing banner */
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.4), inset 0 0 8px rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.8);
+    }
+    50% {
+      box-shadow: 0 0 32px rgba(16, 185, 129, 0.8), inset 0 0 16px rgba(16, 185, 129, 0.4);
+      border-color: #10b981;
+    }
+  }
+  #banner {
+    display: none;
+    background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    color: #fff;
+    border: 1px solid #10b981;
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    animation: pulse-glow 2.5s infinite ease-in-out;
+  }
+  #banner a {
+    color: #fff;
+    text-decoration: underline;
+    margin-right: 14px;
+    transition: opacity 0.2s;
+  }
+  #banner a:hover {
+    opacity: 0.85;
+  }
+
+  #stale {
+    display: none;
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border: 1px solid #d97706;
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  /* Filters toolbar */
+  .filter-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mut);
+    white-space: nowrap;
+  }
+  .segmented-control {
+    display: inline-flex;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 2px;
+  }
+  .pill {
+    border: none;
+    background: transparent;
+    color: var(--mut);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .pill:hover {
+    color: var(--txt);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .pill.on {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Analytics section */
+  .analytics-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .analytics-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+  .golden-card {
+    border-left: 4px solid var(--accent);
+  }
+  .golden-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .golden-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .golden-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .golden-desc {
+    font-size: 12px;
+    color: var(--mut);
+    margin-bottom: 10px;
+  }
+  .golden-window {
+    font-size: 22px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin: 4px 0 8px;
+    letter-spacing: -0.5px;
+  }
+  .golden-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .stat-pill {
+    background: var(--bg-subtle);
+    border: 1px solid var(--line-subtle);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+  }
+  .stat-label {
+    color: var(--mut);
+    margin-right: 4px;
+  }
+  .stat-val {
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .conf-tier-high { color: #34d399; }
+  .conf-tier-medium { color: #fbbf24; }
+  .conf-tier-low { color: #94a3b8; }
+  .golden-tip {
+    margin-top: auto;
+    font-size: 11px;
+    color: var(--mut);
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+  }
+
+  .chart-card {
+    border-left: 4px solid #38bdf8;
+  }
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .chart-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .chart-subtitle {
+    font-size: 12px;
+    color: var(--mut);
+    margin-bottom: 8px;
+  }
+  .chart-svg-wrap {
+    width: 100%;
+    margin-top: auto;
+  }
+  .chart-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  .chart-bar {
+    transition: opacity 0.15s ease;
+    cursor: pointer;
+  }
+  .chart-bar:hover {
+    opacity: 0.8;
+  }
+
+  .empty-notice {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--mut);
+    margin: auto 0;
+  }
+  .empty-icon {
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+  .empty-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--txt);
+    margin-bottom: 2px;
+  }
+  .empty-desc {
+    font-size: 12px;
+    color: var(--mut);
+  }
+
+  /* Real-time KPI Cards */
+  #cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+  }
+  .card.ok {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--card) 100%);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+  }
+  .card.err {
+    border-color: var(--ce);
+  }
+  .card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .card .name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .card .at {
+    font-size: 12px;
+    color: var(--mut);
+  }
+  .card .state {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 8px 0 4px;
+    color: var(--mut);
+  }
+  .card.ok .state { color: #34d399; }
+  .card.err .state { color: #f87171; }
+  .card .det {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #cbd5e1;
+  }
+  .card .last {
+    font-size: 12px;
+    color: var(--mut);
+    margin-top: 8px;
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+  }
+
+  @keyframes radar-ripple {
+    0% {
+      transform: scale(0.9);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+      transform: scale(0.9);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+  .radar-ripple {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: radar-ripple 1.8s infinite ease-out;
+  }
+
+  /* Legend */
+  #legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-size: 12px;
+    color: var(--mut);
+    margin: 0 0 12px;
+    align-items: center;
+  }
+  .leg-scale {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sw-grad {
+    display: inline-block;
+    width: 64px;
+    height: 11px;
+    border-radius: 2px;
+    margin: 0 4px;
+    vertical-align: -1px;
+    background: linear-gradient(to right, var(--g1), var(--g2), var(--g3), var(--g4), var(--g5), var(--g6));
+  }
+  .sw {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: -1px;
+    background: var(--cx);
+  }
+
+  /* Interactive Tooltip & Popover */
+  #cellinfo {
+    display: none;
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #334155;
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Heatmap board & sticky scroll container */
+  .city {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    max-width: 100%;
+  }
+  .chead {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--txt);
+  }
+  .heatmap-scroll-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    padding-bottom: 4px;
+  }
+  .heatmap-grid {
+    min-width: fit-content;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--cg);
+  }
+  .rlabel {
+    flex: none;
+    width: var(--lw);
+    font-size: 12px;
+    color: var(--mut);
+    white-space: nowrap;
+  }
+  .rlabel.sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: var(--card);
+    padding-right: 6px;
+  }
+  .row.today .rlabel {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .cells {
+    display: grid;
+    grid-template-columns: repeat(48, var(--cw));
+    gap: var(--cg);
+  }
+  .cell {
+    width: var(--cw);
+    height: var(--cw);
+    border-radius: 2px;
+    background: var(--cx);
+    cursor: pointer;
+    transition: transform 0.08s ease;
+  }
+  .cell:hover {
+    transform: scale(1.35);
+    z-index: 10;
+    position: relative;
+  }
+  .ce { background: var(--ce); }
+  .cn { background: var(--cn); }
+  .cell.sel {
+    outline: 2px solid #38bdf8;
+    outline-offset: 1px;
+    z-index: 12;
+    position: relative;
+  }
+  .hours {
+    margin-top: 2px;
+  }
+  .hours span {
+    font-size: 10px;
+    color: var(--mut);
+  }
+
+  footer {
+    font-size: 12px;
+    color: var(--mut);
+    margin-top: 14px;
+    line-height: 1.7;
+  }
+  #msg {
+    padding: 20px;
+    text-align: center;
+    color: var(--mut);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+  }
+
+  @media (max-width: 768px) {
+    body { padding: 10px; }
+    .analytics-container { grid-template-columns: 1fr; }
+    .filter-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .segmented-control {
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 </style>
 </head>
 <body>
-<h1>Cita Previa 4010 <span class="sub" data-i18n="subtitle"></span></h1>
-<div id="meta">…</div>
-<div class="controls">
-  <button id="brf" data-i18n="refresh"></button>
-  <button data-lang="zh">中文</button>
-  <button data-lang="en">EN</button>
-  <button data-lang="es">ES</button>
-  <a href="https://github.com/aijiesd520/cita_status.github.io" target="_blank" rel="noopener noreferrer" class="gh-link" data-i18n="github_link"></a>
-</div>
+<header>
+  <h1>Cita Previa 4010 <span class="sub" data-i18n="subtitle"></span></h1>
+  <div id="meta">…</div>
+  <div class="controls">
+    <button id="brf" data-i18n="refresh"></button>
+    <button data-lang="zh">中文</button>
+    <button data-lang="en">EN</button>
+    <button data-lang="es">ES</button>
+    <a href="https://github.com/aijiesd520/cita_status.github.io" target="_blank" rel="noopener noreferrer" class="gh-link" data-i18n="github_link"></a>
+  </div>
+</header>
+
 <div id="banner"></div>
 <div id="stale"></div>
+
+<!-- Filter controls for city and period selection -->
+<div class="filter-toolbar">
+  <div class="filter-group">
+    <span class="filter-label" data-i18n="filter_city"></span>
+    <div class="segmented-control" id="city-pills">
+      <button class="pill on" data-city="all" data-i18n="city_all"></button>
+      <button class="pill" data-city="28" data-i18n="city_madrid"></button>
+      <button class="pill" data-city="8" data-i18n="city_barcelona"></button>
+      <button class="pill" data-city="46" data-i18n="city_valencia"></button>
+    </div>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label" data-i18n="filter_period"></span>
+    <div class="segmented-control" id="period-pills">
+      <button class="pill on" data-period="current_week" data-i18n="period_current_week"></button>
+      <button class="pill" data-period="prev_week" data-i18n="period_prev_week"></button>
+      <button class="pill" data-period="last_30_days" data-i18n="period_last_30_days"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Release Pattern Analytics: Golden Slot Card & 24h Distribution Bar Chart -->
+<section id="analytics-section" class="analytics-container">
+  <div id="golden-card" class="analytics-card golden-card"></div>
+  <div id="distribution-card" class="analytics-card chart-card"></div>
+</section>
+
+<!-- Real-time KPI Cards Container -->
+<main id="cards"></main>
+
+<!-- Heatmap Color Scale Legend -->
 <div id="legend">
   <span class="leg-scale">
     <span data-i18n="lg_slots"></span>:
@@ -92,13 +652,18 @@
   </span>
   <span><span class="sw" style="background:var(--ce)"></span><span data-i18n="lg_err"></span></span>
   <span><span class="sw" style="background:var(--cn)"></span><span data-i18n="lg_no"></span></span>
-  <span><span class="sw"></span><span data-i18n="lg_none"></span></span>
+  <span><span class="sw" style="background:var(--cx)"></span><span data-i18n="lg_none"></span></span>
 </div>
+
+<!-- Interactive Cell Inspection Popover -->
 <div id="cellinfo"></div>
 <div id="msg" hidden></div>
-<main id="cards"></main>
+
+<!-- Heatmap Matrix Board -->
 <div id="board"></div>
+
 <footer data-i18n="footer"></footer>
+
 <script>
 "use strict";
 const MAD = "Europe/Madrid";
@@ -106,12 +671,15 @@ const fmtHM    = new Intl.DateTimeFormat("es-ES", {timeZone:MAD, hour:"2-digit",
 const fmtDayKey= new Intl.DateTimeFormat("en-CA", {timeZone:MAD});   // YYYY-MM-DD
 
 let docs = [];             // 已加载的每轮文档, _t = epoch ms
+let compactData = null;    // 紧凑历史数据聚合对象 (history_compact.json)
+let currentCity = "all";   // "all", "28", "8", "46"
+let currentPeriod = "current_week"; // "current_week", "prev_week", "last_30_days"
+
 // 只展示监控中的省 (2026-09-06 起移除 Las Palmas "35")。
-// 必须在顶层声明: render()/renderCards()/renderBoard() 三处都用 — 曾误放 renderBoard()
-// 函数内, render() 先行触发 ReferenceError 导致整页数据渲染不出 (2026-09-06 实证)
+// 必须在顶层声明: render()/renderCards()/renderBoard() 三处都用
 const SHOW_PROVINCES = ["28", "8", "46"];
 
-/* ---- i18n: zh / en / es ---- */
+/* ---- i18n: zh / en / es (Complete 61-key parity) ---- */
 const I18N = {
   zh: {
     title: "Cita Previa 4010 放号监控",
@@ -130,7 +698,35 @@ const I18N = {
     just_now: "刚刚", min_ago: "{n} 分钟前", hour_ago: "{n} 小时前", day_ago: "{n} 天前",
     checks: "检查", slots: "有号", errors: "错误",
     wd: ["日","一","二","三","四","五","六"],
-    footer: "每行 = 一天（48 格 × 30 分钟，从 00:00 到 24:00），最上一行是 6 天前，最下一行是今天；悬停看详情，手机点按格子看详情。每 60 秒自动刷新；GitHub Pages 缓存最多延迟 10 分钟。<br>本页为社区公益信息展示，数据来自对公众预约系统可用性的被动探测，与任何官方机构无关；能否预约以官网为准。"
+    footer: "每行 = 一天（48 格 × 30 分钟，从 00:00 到 24:00）；悬停看详情，手机点按格子看详情。每 60 秒自动刷新；GitHub Pages 缓存最多延迟 10 分钟。<br>本页为社区公益信息展示，数据来自对公众预约系统可用性的被动探测，与任何官方机构无关；能否预约以官网为准。",
+    filter_city: "城市筛选",
+    filter_period: "统计周期",
+    city_all: "全部省份",
+    city_madrid: "马德里 (28)",
+    city_barcelona: "巴塞罗那 (8)",
+    city_valencia: "瓦伦西亚 (46)",
+    period_current_week: "当前周",
+    period_prev_week: "上一周",
+    period_last_30_days: "近 30 天",
+    golden_title: "黄金抢号时段推荐",
+    golden_desc: "基于历史放号密集度与成功率综合提炼",
+    best_window: "最佳抢号时段",
+    prob_index: "历史放号概率",
+    confidence: "置信度",
+    conf_high: "高",
+    conf_med: "中",
+    conf_low: "低",
+    golden_tip: "建议在黄金时段开始前 5 分钟提前登录西班牙官方预约网站并准备好手机验证码。",
+    golden_empty_title: "暂无足够放号规律数据",
+    golden_empty_desc: "所选城市与时间周期内未记录到放号数据，后台探针持续探测中…",
+    chart_title: "24 小时放号概率分布",
+    chart_subtitle: "全天各时段放号活跃度与成功概率统计",
+    chart_peak: "峰值时段",
+    chart_hour: "小时",
+    chart_rate: "放号概率",
+    chart_empty: "暂无 24 小时分布数据",
+    tt_time: "时间段",
+    tt_rate: "有号率"
   },
   en: {
     title: "Cita Previa 4010 Slot Monitor",
@@ -149,7 +745,35 @@ const I18N = {
     just_now: "just now", min_ago: "{n} min ago", hour_ago: "{n} h ago", day_ago: "{n} days ago",
     checks: "checks", slots: "slots", errors: "errors",
     wd: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
-    footer: "Each row = one day (48 cells × 30 min, 00:00–24:00); top row is 6 days ago, bottom row is today. Hover for details; tap a cell on mobile. Auto-refresh every 60 s; GitHub Pages cache may delay updates up to 10 minutes.<br>This is a community, non-profit information page. Data comes from passive availability checks of the public booking system and is not affiliated with any authority; bookings must be made on the official site."
+    footer: "Each row = one day (48 cells × 30 min, 00:00–24:00); hover for details; tap a cell on mobile. Auto-refresh every 60 s; GitHub Pages cache may delay updates up to 10 minutes.<br>This is a community, non-profit information page. Data comes from passive availability checks of the public booking system and is not affiliated with any authority; bookings must be made on the official site.",
+    filter_city: "City Filter",
+    filter_period: "Time Period",
+    city_all: "All Provinces",
+    city_madrid: "Madrid (28)",
+    city_barcelona: "Barcelona (8)",
+    city_valencia: "Valencia (46)",
+    period_current_week: "Current Week",
+    period_prev_week: "Previous Week",
+    period_last_30_days: "Past 30 Days",
+    golden_title: "Golden Slot Recommendation",
+    golden_desc: "Identified peak release windows based on historical frequency",
+    best_window: "Best Window",
+    prob_index: "Release Probability",
+    confidence: "Confidence",
+    conf_high: "High",
+    conf_med: "Medium",
+    conf_low: "Low",
+    golden_tip: "Tip: Log into the official booking website 5 minutes ahead with SMS verification ready.",
+    golden_empty_title: "No Release Patterns Detected Yet",
+    golden_empty_desc: "No slot releases recorded for the selected city/period. Probes are monitoring actively.",
+    chart_title: "24-Hour Release Distribution",
+    chart_subtitle: "Hourly appointment availability frequency and probability across 24 hours",
+    chart_peak: "Peak Window",
+    chart_hour: "Hour",
+    chart_rate: "Probability",
+    chart_empty: "No 24-hour distribution data available yet",
+    tt_time: "Time Window",
+    tt_rate: "Hit Rate"
   },
   es: {
     title: "Monitor de citas Cita Previa 4010",
@@ -168,23 +792,83 @@ const I18N = {
     just_now: "ahora mismo", min_ago: "hace {n} min", hour_ago: "hace {n} h", day_ago: "hace {n} días",
     checks: "comprob.", slots: "citas", errors: "errores",
     wd: ["dom","lun","mar","mié","jue","vie","sáb"],
-    footer: "Cada fila = un día (48 celdas × 30 min, 00:00–24:00); la fila superior es de hace 6 días, la inferior es hoy. Pase el ratón para ver detalles; toque una celda en el móvil. Se actualiza cada 60 s; la caché de GitHub Pages puede retrasar hasta 10 minutos.<br>Esta es una página informativa comunitaria sin ánimo de lucro. Los datos provienen de comprobaciones pasivas de disponibilidad del sistema público de citas y no están afiliados a ninguna autoridad; la cita debe solicitarse en la web oficial."
+    footer: "Cada fila = un día (48 celdas × 30 min, 00:00–24:00); la fila superior es de hace 6 días, la inferior es hoy. Pase el ratón para ver detalles; toque una celda en el móvil. Se actualiza cada 60 s; la caché de GitHub Pages puede retrasar hasta 10 minutos.<br>Esta es una página informativa comunitaria sin ánimo de lucro. Los datos provienen de comprobaciones pasivas de disponibilidad del sistema público de citas y no están afiliados a ninguna autoridad; la cita debe solicitarse en la web oficial.",
+    filter_city: "Filtrar provincia",
+    filter_period: "Periodo temporal",
+    city_all: "Todas las provincias",
+    city_madrid: "Madrid (28)",
+    city_barcelona: "Barcelona (8)",
+    city_valencia: "Valencia (46)",
+    period_current_week: "Semana actual",
+    period_prev_week: "Semana anterior",
+    period_last_30_days: "Últimos 30 días",
+    golden_title: "Recomendación de franja dorada",
+    golden_desc: "Ventanas pico de liberación basadas en frecuencia histórica",
+    best_window: "Mejor franja",
+    prob_index: "Probabilidad de cita",
+    confidence: "Confianza",
+    conf_high: "Alta",
+    conf_med: "Media",
+    conf_low: "Baja",
+    golden_tip: "Consejo: Inicie sesión en la web oficial 5 minutos antes con la verificación por SMS lista.",
+    golden_empty_title: "Sin patrones de cita registrados aún",
+    golden_empty_desc: "No se registraron citas en la provincia/periodo seleccionado. Los sondeos continúan activos.",
+    chart_title: "Distribución de citas 24 horas",
+    chart_subtitle: "Frecuencia y probabilidad de citas por hora durante el día",
+    chart_peak: "Hora pico",
+    chart_hour: "Hora",
+    chart_rate: "Probabilidad",
+    chart_empty: "Sin datos de distribución horaria disponibles",
+    tt_time: "Franja horaria",
+    tt_rate: "Tasa de citas"
   }
 };
-let lang = localStorage.getItem("lang");
+
+let lang = null;
+try {
+  if (typeof localStorage !== "undefined" && localStorage) {
+    lang = localStorage.getItem("lang");
+  }
+} catch (e) {}
 if (!lang) {
-  const n = (navigator.language || "").toLowerCase();
+  const n = (typeof navigator !== "undefined" && navigator.language ? navigator.language : "").toLowerCase();
   lang = n.startsWith("es") ? "es" : (n.startsWith("zh") ? "zh" : "en");
 }
-const t = k => (I18N[lang][k] ?? I18N.en[k] ?? k);
+const t = k => (I18N[lang] && I18N[lang][k] !== undefined ? I18N[lang][k] : (I18N.en[k] ?? k));
+
+function safeSetStorage(key, val) {
+  try {
+    if (typeof localStorage !== "undefined" && localStorage) {
+      localStorage.setItem(key, String(val));
+    }
+  } catch (e) {}
+}
 
 function applyStatic(){
   document.title = t("title");
   document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
-  document.querySelectorAll("[data-i18n]").forEach(el => { el.innerHTML = t(el.dataset.i18n); });
-  document.querySelectorAll("[data-lang]").forEach(b =>
-    b.classList.toggle("on", b.dataset.lang === lang));
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    if (el && el.dataset && el.dataset.i18n) {
+      el.innerHTML = t(el.dataset.i18n);
+    }
+  });
+  document.querySelectorAll("[data-lang]").forEach(b => {
+    if (b && b.dataset) {
+      b.classList.toggle("on", b.dataset.lang === lang);
+    }
+  });
+  document.querySelectorAll("#city-pills .pill").forEach(p => {
+    if (p && p.dataset) {
+      p.classList.toggle("on", p.dataset.city === currentCity);
+    }
+  });
+  document.querySelectorAll("#period-pills .pill").forEach(p => {
+    if (p && p.dataset) {
+      p.classList.toggle("on", p.dataset.period === currentPeriod);
+    }
+  });
 }
+
 function parseT(s){        // "2026-09-02T08:01:12+0100" -> epoch ms (+HHMM 归一为 +HH:MM)
   if (!s) return NaN;
   return Date.parse(String(s).trim().replace(/([+-]\d\d)(\d\d)$/, "$1:$2"));
@@ -200,6 +884,7 @@ function rel(ms){
   if (h < 48) return t("hour_ago").replace("{n}", h);
   return t("day_ago").replace("{n}", Math.floor(h/24));
 }
+
 function utcKeysBack(n){
   const out = [], now = Date.now();
   for (let i = 0; i <= n; i++){
@@ -208,70 +893,424 @@ function utcKeysBack(n){
   }
   return out;
 }
+
 async function fetchDay(key, bust){
   const r = await fetch("d/" + key + ".jsonl" + (bust ? "?t=" + Date.now() : ""));
-  if (!r.ok) return;                       // 404 = 该日尚无数据, 正常
+  if (!r.ok) return;                       // 404 = 该日尚无数据
   const txt = await r.text();
   for (const line of txt.split(/\r?\n/)){
     if (!line.trim()) continue;
     try {
-      const d = JSON.parse(line);          // 容忍写入中断的坏末行
+      const d = JSON.parse(line);
       d._t = parseT(d.generated_at);
       if (!isNaN(d._t)) docs.push(d);
     } catch (e) {}
   }
 }
+
+/* ---- Period & Date Range Calculations ---- */
+function computePeriodDates(periodType, refMs = Date.now()) {
+  const refDateStr = fmtDayKey.format(refMs);
+  const [y, m, d] = refDateStr.split("-").map(Number);
+  const refUtc = new Date(Date.UTC(y, m - 1, d));
+
+  if (periodType === "current_week") {
+    // ISO weekday: Monday=0 .. Sunday=6
+    const dow = (refUtc.getUTCDay() + 6) % 7;
+    const mon = new Date(refUtc.getTime() - dow * 86400000);
+    const res = [];
+    for (let i = 0; i < 7; i++) {
+      res.push(new Date(mon.getTime() + i * 86400000).toISOString().slice(0, 10));
+    }
+    return res;
+  } else if (periodType === "prev_week") {
+    const dow = (refUtc.getUTCDay() + 6) % 7;
+    const prevMon = new Date(refUtc.getTime() - (dow + 7) * 86400000);
+    const res = [];
+    for (let i = 0; i < 7; i++) {
+      res.push(new Date(prevMon.getTime() + i * 86400000).toISOString().slice(0, 10));
+    }
+    return res;
+  } else if (periodType === "last_30_days") {
+    const res = [];
+    for (let i = 29; i >= 0; i--) {
+      res.push(new Date(refUtc.getTime() - i * 86400000).toISOString().slice(0, 10));
+    }
+    return res;
+  }
+  return [];
+}
+
+/* ---- Data Loading: Dual-Track Architecture ---- */
 async function load(){
-  docs = [];
-  let fail = 0;
-  const days = utcKeysBack(7);             // 7 个马德里日最坏横跨 8 个 UTC 文件
-  await Promise.all(days.map((k, i) =>
-    fetchDay(k, i === 0).catch(() => { fail++; })));   // 今天破缓存, 历史日期走 HTTP 缓存
+  let compactLoaded = false;
+
+  // 1. Primary load: lightweight compact history (< 50KB)
+  try {
+    const rCompact = await fetch("d/history_compact.json?t=" + Date.now());
+    if (rCompact.ok) {
+      compactData = await rCompact.json();
+      compactLoaded = true;
+    }
+  } catch (e) {}
+
+  // 2. Fetch today's detailed jsonl snapshot if present
+  if (compactLoaded && compactData && compactData.provinces) {
+    let latestDateStr = "";
+    for (const p of SHOW_PROVINCES) {
+      const days = Object.keys((compactData.provinces && compactData.provinces[p]) || {});
+      if (days.length) {
+        const d = days.sort()[days.length - 1];
+        if (d > latestDateStr) latestDateStr = d;
+      }
+    }
+    if (latestDateStr) {
+      const dayKey = latestDateStr.replace(/-/g, "");
+      try {
+        const rJsonl = await fetch("d/" + dayKey + ".jsonl?t=" + Date.now());
+        if (rJsonl.ok) {
+          const txt = await rJsonl.text();
+          docs = [];
+          for (const line of txt.split(/\r?\n/)){
+            if (!line.trim()) continue;
+            try {
+              const d = JSON.parse(line);
+              d._t = parseT(d.generated_at);
+              if (!isNaN(d._t)) docs.push(d);
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  // 3. Fallback: load recent jsonl files if compactData is missing
+  if (!compactLoaded) {
+    docs = [];
+    let fail = 0;
+    const days = utcKeysBack(7);
+    await Promise.all(days.map((k, i) =>
+      fetchDay(k, i === 0).catch(() => { fail++; })));
+  }
+
   const msg = document.getElementById("msg");
-  msg.hidden = true;
-  document.getElementById("cellinfo").style.display = "none";
-  if (!docs.length){
-    document.getElementById("cards").innerHTML = "";
-    document.getElementById("board").innerHTML = "";
-    setBanner(null); setStale(false);
-    msg.hidden = false;
-    msg.textContent = location.protocol === "file:"
-      ? t("filehint")
-      : (fail === days.length ? t("loadfail") : t("nodata"));
-    document.getElementById("meta").textContent = t("nodata");
+  if (msg) msg.hidden = true;
+  const cellinfo = document.getElementById("cellinfo");
+  if (cellinfo) cellinfo.style.display = "none";
+
+  const hasData = (compactData && compactData.provinces && Object.keys(compactData.provinces).length > 0) || docs.length > 0;
+  if (!hasData){
+    const cardsEl = document.getElementById("cards");
+    if (cardsEl) cardsEl.innerHTML = "";
+    const boardEl = document.getElementById("board");
+    if (boardEl) boardEl.innerHTML = "";
+    setBanner(null);
+    setStale(false);
+    if (msg) {
+      msg.hidden = false;
+      msg.textContent = (typeof location !== "undefined" && location.protocol === "file:")
+        ? t("filehint")
+        : t("nodata");
+    }
+    const metaEl = document.getElementById("meta");
+    if (metaEl) metaEl.textContent = t("nodata");
+    renderAnalytics();
     return;
   }
   render();
 }
 
-/* ---- 渲染 ---- */
+/* ---- Golden Hours & 24h Distribution Analytics Engine ---- */
+function computeGoldenHoursAnalytics(compact, provinceId) {
+  const hourly = Array.from({length: 24}, (_, h) => ({ hour: h, checks: 0, hits: 0, rate: 0.0 }));
+  const weekdayData = {};
+  for (let w = 1; w <= 7; w++) weekdayData[w] = { checks: 0, hits: 0, rate: 0.0 };
 
+  let totalChecks = 0;
+  let totalHits = 0;
+
+  if (!compact || !compact.provinces) {
+    return {
+      hasData: false,
+      totalChecks: 0,
+      totalHits: 0,
+      peakWindow: null,
+      hourlyDistribution: hourly,
+      weekdayDistribution: weekdayData
+    };
+  }
+
+  const targetProvs = (provinceId === "all") ? SHOW_PROVINCES : [String(provinceId)];
+
+  for (const pid of targetProvs) {
+    const provData = (compact.provinces && compact.provinces[pid]) || {};
+    for (const [dayStr, slots] of Object.entries(provData)) {
+      let wd = 1;
+      try {
+        const d = new Date(dayStr + "T12:00:00Z");
+        const utcd = d.getUTCDay();
+        wd = (utcd === 0) ? 7 : utcd; // ISO: 1=Mon..7=Sun
+      } catch (e) {}
+
+      for (const [slotStr, triplet] of Object.entries(slots)) {
+        const slotIdx = parseInt(slotStr, 10);
+        const h = Math.floor(slotIdx / 2);
+        const c = Array.isArray(triplet) ? (triplet[0] || 0) : 0;
+        const a = Array.isArray(triplet) ? (triplet[1] || 0) : 0;
+        totalChecks += c;
+        totalHits += a;
+
+        if (h >= 0 && h < 24) {
+          hourly[h].checks += c;
+          hourly[h].hits += a;
+        }
+        if (weekdayData[wd]) {
+          weekdayData[wd].checks += c;
+          weekdayData[wd].hits += a;
+        }
+      }
+    }
+  }
+
+  for (let h = 0; h < 24; h++) {
+    if (hourly[h].checks > 0) {
+      hourly[h].rate = hourly[h].hits / hourly[h].checks;
+    }
+  }
+  for (let w = 1; w <= 7; w++) {
+    if (weekdayData[w].checks > 0) {
+      weekdayData[w].rate = weekdayData[w].hits / weekdayData[w].checks;
+    }
+  }
+
+  if (totalChecks < 10 || totalHits === 0) {
+    return {
+      hasData: false,
+      totalChecks,
+      totalHits,
+      peakWindow: null,
+      hourlyDistribution: hourly,
+      weekdayDistribution: weekdayData
+    };
+  }
+
+  // Find peak hour: max by rate, then hits
+  let peakHourEntry = hourly[0];
+  for (let h = 1; h < 24; h++) {
+    if (hourly[h].rate > peakHourEntry.rate ||
+       (hourly[h].rate === peakHourEntry.rate && hourly[h].hits > peakHourEntry.hits)) {
+      peakHourEntry = hourly[h];
+    }
+  }
+
+  // Find peak weekday: max by rate, then hits
+  let peakWd = 1;
+  let peakWdData = weekdayData[1];
+  for (let w = 2; w <= 7; w++) {
+    if (weekdayData[w].rate > peakWdData.rate ||
+       (weekdayData[w].rate === peakWdData.rate && weekdayData[w].hits > peakWdData.hits)) {
+      peakWd = w;
+      peakWdData = weekdayData[w];
+    }
+  }
+
+  let tier = "low";
+  if (totalChecks >= 50 && peakHourEntry.hits >= 5) {
+    tier = "high";
+  } else if (totalChecks >= 20) {
+    tier = "medium";
+  }
+
+  return {
+    hasData: true,
+    totalChecks,
+    totalHits,
+    peakWindow: {
+      startHour: peakHourEntry.hour,
+      endHour: (peakHourEntry.hour + 1) % 24,
+      weekdayIndex: peakWd,
+      probability: peakHourEntry.rate,
+      confidenceTier: tier
+    },
+    hourlyDistribution: hourly,
+    weekdayDistribution: weekdayData
+  };
+}
+
+/* ---- Render Analytics Components ---- */
+function renderAnalytics() {
+  const gCard = document.getElementById("golden-card");
+  const cCard = document.getElementById("distribution-card");
+  if (!gCard || !cCard) return;
+
+  const stats = computeGoldenHoursAnalytics(compactData, currentCity);
+
+  // 1. Golden Slot Card
+  if (!stats.hasData || !stats.peakWindow) {
+    gCard.innerHTML = `
+      <div class="golden-head">
+        <span class="golden-title">${t("golden_title")}</span>
+        <span class="golden-badge" style="background:rgba(148,163,184,0.15);color:#94a3b8;border-color:rgba(148,163,184,0.3)">${t("confidence")}: -</span>
+      </div>
+      <div class="empty-notice">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">${t("golden_empty_title")}</div>
+        <div class="empty-desc">${t("golden_empty_desc")}</div>
+      </div>
+    `;
+  } else {
+    const pw = stats.peakWindow;
+    const startStr = String(pw.startHour).padStart(2, "0") + ":00";
+    const endStr = String(pw.endHour).padStart(2, "0") + ":00";
+    const wdIdx = pw.weekdayIndex % 7; // 1->1, 7->0
+    const wdStr = (lang === "zh" ? "周" : "") + I18N[lang].wd[wdIdx];
+    const probPct = (pw.probability * 100).toFixed(1) + "%";
+    const confTierKey = "conf_" + pw.confidenceTier;
+    const confClass = "conf-tier-" + pw.confidenceTier;
+
+    gCard.innerHTML = `
+      <div class="golden-head">
+        <span class="golden-title">${t("golden_title")}</span>
+        <span class="golden-badge">${t("best_window")}</span>
+      </div>
+      <div class="golden-desc">${t("golden_desc")}</div>
+      <div class="golden-window">✨ ${wdStr} ${startStr} – ${endStr}</div>
+      <div class="golden-stats">
+        <div class="stat-pill"><span class="stat-label">${t("prob_index")}:</span><span class="stat-val">${probPct}</span></div>
+        <div class="stat-pill"><span class="stat-label">${t("confidence")}:</span><span class="stat-val ${confClass}">${t(confTierKey)}</span></div>
+        <div class="stat-pill"><span class="stat-label">${t("slots")}:</span><span class="stat-val">${stats.totalHits}</span></div>
+        <div class="stat-pill"><span class="stat-label">${t("checks")}:</span><span class="stat-val">${stats.totalChecks}</span></div>
+      </div>
+      <div class="golden-tip">💡 ${t("golden_tip")}</div>
+    `;
+  }
+
+  // 2. 24h Distribution SVG Chart
+  if (!stats.hasData) {
+    cCard.innerHTML = `
+      <div class="chart-head">
+        <span class="chart-title">${t("chart_title")}</span>
+      </div>
+      <div class="chart-subtitle">${t("chart_subtitle")}</div>
+      <div class="empty-notice">
+        <div class="empty-icon">📊</div>
+        <div class="empty-title">${t("chart_empty")}</div>
+        <div class="empty-desc">${t("golden_empty_desc")}</div>
+      </div>
+    `;
+  } else {
+    const dist = stats.hourlyDistribution;
+    let maxRate = 0;
+    for (const item of dist) {
+      if (item.rate > maxRate) maxRate = item.rate;
+    }
+    if (maxRate === 0) maxRate = 0.05;
+
+    const chartW = 720;
+    const chartH = 150;
+    const barW = 20;
+    const barGap = 8;
+    const offsetX = 24;
+    const maxBarH = 95;
+    const baseY = 118;
+
+    let barsSvg = "";
+    let labelsSvg = "";
+
+    for (let h = 0; h < 24; h++) {
+      const item = dist[h];
+      const barH = item.checks > 0 ? Math.max(3, (item.rate / maxRate) * maxBarH) : 3;
+      const x = offsetX + h * (barW + barGap);
+      const y = baseY - barH;
+      const isPeak = stats.peakWindow && (h === stats.peakWindow.startHour);
+      const fillColor = isPeak ? "#10b981" : (item.hits > 0 ? "#34d399" : "#22304a");
+      const strokeColor = isPeak ? "#34d399" : "none";
+      const hStr = String(h).padStart(2, "0");
+      const tipText = `${hStr}:00–${String((h+1)%24).padStart(2,"0")}:00 | ${t("slots")}: ${item.hits}, ${t("checks")}: ${item.checks} (${(item.rate * 100).toFixed(1)}%)`;
+
+      barsSvg += `<rect class="chart-bar" x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isPeak ? 1.5 : 0}">
+        <title>${tipText}</title>
+      </rect>`;
+
+      if (isPeak) {
+        barsSvg += `<text x="${x + barW/2}" y="${y - 6}" font-size="10" font-weight="bold" fill="#34d399" text-anchor="middle">🔥</text>`;
+      }
+
+      if (h % 3 === 0 || h === 23) {
+        labelsSvg += `<text x="${x + barW/2}" y="${baseY + 16}" font-size="10" fill="#94a3b8" text-anchor="middle">${hStr}</text>`;
+      }
+    }
+
+    cCard.innerHTML = `
+      <div class="chart-head">
+        <span class="chart-title">${t("chart_title")}</span>
+        <span class="golden-badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.3)">24h</span>
+      </div>
+      <div class="chart-subtitle">${t("chart_subtitle")}</div>
+      <div class="chart-svg-wrap">
+        <svg class="chart-svg" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="xMidYMid meet">
+          <line x1="${offsetX}" y1="${baseY}" x2="${chartW - 10}" y2="${baseY}" stroke="#22304d" stroke-width="1" />
+          ${barsSvg}
+          ${labelsSvg}
+        </svg>
+      </div>
+    `;
+  }
+}
+
+/* ---- Main Render ---- */
 function render(){
   docs.sort((a,b) => a._t - b._t);
-  const latest = docs[docs.length - 1];
-  document.getElementById("meta").textContent =
-    t("updated").replace("{t}", zhDT(latest._t)).replace("{r}", rel(Date.now()-latest._t));
-  setStale(Date.now() - latest._t > 45*60000);
-  const availNow = (latest.results || []).filter(r => r.available && SHOW_PROVINCES.indexOf(r.province) >= 0);
+  const latestDoc = docs.length ? docs[docs.length - 1] : null;
+
+  let updateTime = Date.now();
+  if (latestDoc && latestDoc._t) {
+    updateTime = latestDoc._t;
+  } else if (compactData && compactData.updated_at) {
+    const pt = parseT(compactData.updated_at);
+    if (!isNaN(pt)) updateTime = pt;
+  }
+
+  const metaEl = document.getElementById("meta");
+  if (metaEl) {
+    metaEl.textContent = t("updated").replace("{t}", zhDT(updateTime)).replace("{r}", rel(Date.now() - updateTime));
+  }
+  setStale(Date.now() - updateTime > 45*60000);
+
+  // Active appointment banner
+  const availNow = (latestDoc && latestDoc.results ? latestDoc.results : [])
+    .filter(r => r.available && SHOW_PROVINCES.indexOf(r.province) >= 0);
   setBanner(availNow.length ? availNow : null);
-  renderCards(latest);
+
+  renderAnalytics();
+  renderCards(latestDoc);
   renderBoard();
 }
+
 function setBanner(list){
   const b = document.getElementById("banner");
-  if (!list){ b.style.display = "none"; return; }
+  if (!b) return;
+  if (!list || !list.length){
+    b.style.display = "none";
+    b.innerHTML = "";
+    return;
+  }
   b.style.display = "block";
   b.innerHTML = list.map(r =>
     `<a href="#card-${r.province}">📍 ${r.province_name || r.province} ${t("has_slots")}` +
     (r.earliest ? ` ${t("earliest")}: ${r.earliest.date || ""} ${r.earliest.time || ""}` : "") + "</a>").join("");
 }
+
 function setStale(on){
   const s = document.getElementById("stale");
+  if (!s) return;
   s.style.display = on ? "block" : "none";
   if (on) s.textContent = t("stale");
 }
+
 function card(r, lastHit){
   const cls = r.available ? "ok" : (r.status === "error" ? "err" : "no");
+  const ripple = r.available ? `<span class="radar-ripple"></span>` : "";
   const st  = r.available ? t("st_ok") : r.status === "error" ? t("st_err") : t("st_no");
   let det = "";
   if (r.available){
@@ -284,35 +1323,52 @@ function card(r, lastHit){
   return `<div class="card ${cls}" id="card-${r.province}">
     <div class="head"><span class="name">${r.province_name || r.province}</span>
     <span class="at">${isNaN(tm) ? "" : zhDT(tm)}</span></div>
-    <div class="state">${st}</div>
+    <div class="state">${ripple}${st}</div>
     <div class="det">${det}</div>
     <div class="last">${t("last_hit")}${lastHit ? zhDT(lastHit) + "（" + rel(Date.now()-lastHit) + "）" : t("never")}</div>
   </div>`;
 }
-function renderCards(latest){
-  const lastHits = {};                     // 每省最近一次 available 的时间
-  for (const d of docs) for (const r of (d.results || [])){
-    if (!r.available || !r.province) continue;
-    const tm = parseT(r.checked_at) || d._t;
-    if (!lastHits[r.province] || tm > lastHits[r.province]) lastHits[r.province] = tm;
+
+function renderCards(latestDoc){
+  const lastHits = {};
+  for (const d of docs) {
+    for (const r of (d.results || [])){
+      if (!r.available || !r.province) continue;
+      const tm = parseT(r.checked_at) || d._t;
+      if (!lastHits[r.province] || tm > lastHits[r.province]) lastHits[r.province] = tm;
+    }
   }
-  document.getElementById("cards").innerHTML =
-    (latest.results || []).filter(r => SHOW_PROVINCES.indexOf(r.province) >= 0)
-      .map(r => card(r, lastHits[r.province])).join("");
+
+  // Fallback metadata for default provinces
+  const provMeta = {
+    "28": { name: "Madrid", available: false, status: "ok" },
+    "8":  { name: "Barcelona", available: false, status: "ok" },
+    "46": { name: "Valencia", available: false, status: "ok" }
+  };
+
+  const results = (latestDoc && latestDoc.results && latestDoc.results.length)
+    ? latestDoc.results
+    : SHOW_PROVINCES.map(p => ({
+        province: p,
+        province_name: provMeta[p].name,
+        available: false,
+        status: "ok",
+        checked_at: new Date().toISOString()
+      }));
+
+  const filtered = results.filter(r => {
+    if (SHOW_PROVINCES.indexOf(String(r.province)) < 0) return false;
+    if (currentCity !== "all" && String(r.province) !== currentCity) return false;
+    return true;
+  });
+
+  const cardsContainer = document.getElementById("cards");
+  if (cardsContainer) {
+    cardsContainer.innerHTML = filtered.map(r => card(r, lastHits[r.province])).join("");
+  }
 }
 
-/* ---- 贡献图: 每城 7 行(天, 旧→新自上而下, 今天最底) × 48 列(30 分钟, 00:00→24:00) ---- */
-
-function slotLabel(j){
-  const h = Math.floor(j/2), m = (j%2)*30, p = n => String(n).padStart(2,"0");
-  return `${p(h)}:${p(m)}–${p(h + (m===30 ? 1 : 0))}:${p(m===30 ? 0 : 30)}`;
-}
-function rowLabel(key, todayKey){          // "YYYY-MM-DD" -> "09-01 周二 / Tue / mar"
-  const [,m,d] = key.split("-");
-  const wd = I18N[lang].wd[new Date(key + "T12:00:00Z").getUTCDay()];
-  return `${m}-${d} ${lang === "zh" ? "周" + wd : wd}`;
-}
-// 连续绿色渐变色阶插值定义 (Less #9be9a8 -> More #116329)
+/* ---- Continuous Green Ramp Interpolation ---- */
 const GREEN_RAMP = [
   [155, 233, 168], // #9be9a8 (Stop 0: Less)
   [108, 198, 117], // #6cc675 (Stop 1)
@@ -334,48 +1390,83 @@ function greenRamp(tVal){
   return `rgb(${r},${g},${b})`;
 }
 
+function slotLabel(j){
+  const h = Math.floor(j/2), m = (j%2)*30, p = n => String(n).padStart(2,"0");
+  return `${p(h)}:${p(m)}–${p(h + (m===30 ? 1 : 0))}:${p(m===30 ? 0 : 30)}`;
+}
+function rowLabel(key){
+  const [,m,d] = key.split("-");
+  const wd = I18N[lang].wd[new Date(key + "T12:00:00Z").getUTCDay()];
+  return `${m}-${d} ${lang === "zh" ? "周" + wd : wd}`;
+}
+
+/* ---- Heatmap Board Rendering with Sticky Date Column ---- */
 function renderBoard(){
   const todayKey = fmtDayKey.format(Date.now());
-  const [ty,tm,td] = todayKey.split("-").map(Number);
-  const days = [];                         // [6天前, ..., 昨天, 今天] 旧→新自上而下
-  for (let k = 6; k >= 0; k--)
-    days.push(new Date(Date.UTC(ty, tm-1, td) - k*86400000).toISOString().slice(0,10));
+  const days = computePeriodDates(currentPeriod, Date.now());
 
-  // 每省聚合: cells["day|j"] = {c:检查, a:有号, e:错误} —— 马德里墙钟落格
-  // 去重 (province|checked_at): jsonl 每行是全省快照, 任一省更新就整包追加推送,
-  // 未更新的省行被原样复制 N 次 — 不去重则格子计数膨胀 ~3-4 倍 (2026-09-06 实测:
-  // 真实 150 次 → 显示 588 次). 同一检查只计首次出现, 历史数据随读随修.
+  // Aggregate cells from compactData or docs
   const provs = new Map();
-  const seenCheck = new Set();
-  for (const doc of docs) for (const r of (doc.results || [])){
-    if (!r.province || SHOW_PROVINCES.indexOf(r.province) < 0) continue;
-    let tt = parseT(r.checked_at);
-    if (isNaN(tt)) tt = doc._t;
-    const dk = r.province + "|" + tt;
-    if (seenCheck.has(dk)) continue;
-    seenCheck.add(dk);
-    let o = provs.get(r.province);
-    if (!o){
-      o = {name: r.province_name || ("省 " + r.province), cells: new Map()};
-      provs.set(r.province, o);
-    }
-    const hm = fmtHM.format(tt);
-    const j = (+hm.slice(0,2))*2 + (+hm.slice(3,5) >= 30 ? 1 : 0);
-    const key = fmtDayKey.format(tt) + "|" + j;
-    const c = o.cells.get(key) || {c:0, a:0, e:0};
-    const checks = typeof r.checks_count === "number" ? r.checks_count : 1;
-    const available = typeof r.available_count === "number" ? r.available_count : (r.available ? 1 : 0);
-    const errors = typeof r.error_count === "number" ? r.error_count : (r.status === "error" ? 1 : 0);
-    c.c += checks;
-    c.a += available;
-    c.e += errors;
-    o.cells.set(key, c);
-  }
-  const latestDoc = docs.length ? docs[docs.length-1] : null;
-  const order = (latestDoc && latestDoc.results ? latestDoc.results : []).map(r => r.province);   // 城市序=最新一轮
-  const ordered = [...provs.entries()].sort((a,b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+  const provNames = { "28": "Madrid", "8": "Barcelona", "46": "Valencia" };
 
-  // 计算当前全局最大有号密度 (用于动态相对渐变归一化)
+  const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
+
+  for (const pid of targetProvs) {
+    provs.set(pid, { name: provNames[pid] || ("省 " + pid), cells: new Map() });
+  }
+
+  // Populate from compactData if available
+  if (compactData && compactData.provinces) {
+    for (const pid of targetProvs) {
+      const pData = compactData.provinces[pid];
+      if (!pData) continue;
+      const targetObj = provs.get(pid);
+      for (const [dayKey, slots] of Object.entries(pData)) {
+        for (const [slotStr, triplet] of Object.entries(slots)) {
+          const key = dayKey + "|" + slotStr;
+          const c = Array.isArray(triplet) ? (triplet[0] || 0) : 0;
+          const a = Array.isArray(triplet) ? (triplet[1] || 0) : 0;
+          const e = Array.isArray(triplet) ? (triplet[2] || 0) : 0;
+          targetObj.cells.set(key, { c, a, e });
+        }
+      }
+    }
+  }
+
+  // Also incorporate any newer in-memory docs
+  const seenCheck = new Set();
+  for (const doc of docs) {
+    for (const r of (doc.results || [])){
+      if (!r.province || SHOW_PROVINCES.indexOf(String(r.province)) < 0) continue;
+      if (currentCity !== "all" && String(r.province) !== currentCity) continue;
+      let tt = parseT(r.checked_at);
+      if (isNaN(tt)) tt = doc._t;
+      const dk = r.province + "|" + tt;
+      if (seenCheck.has(dk)) continue;
+      seenCheck.add(dk);
+
+      let o = provs.get(String(r.province));
+      if (!o){
+        o = { name: r.province_name || provNames[r.province] || ("省 " + r.province), cells: new Map() };
+        provs.set(String(r.province), o);
+      }
+      const hm = fmtHM.format(tt);
+      const j = (+hm.slice(0,2))*2 + (+hm.slice(3,5) >= 30 ? 1 : 0);
+      const key = fmtDayKey.format(tt) + "|" + j;
+      const c = o.cells.get(key) || {c:0, a:0, e:0};
+      const checks = typeof r.checks_count === "number" ? r.checks_count : 1;
+      const available = typeof r.available_count === "number" ? r.available_count : (r.available ? 1 : 0);
+      const errors = typeof r.error_count === "number" ? r.error_count : (r.status === "error" ? 1 : 0);
+      c.c += checks;
+      c.a += available;
+      c.e += errors;
+      o.cells.set(key, c);
+    }
+  }
+
+  const ordered = SHOW_PROVINCES.filter(p => provs.has(p)).map(p => [p, provs.get(p)]);
+
+  // Compute maximum appointment density for relative scaling (0.20 intensity floor)
   let maxDensity = 0;
   for (const [, o] of ordered){
     for (const c of o.cells.values()){
@@ -390,8 +1481,8 @@ function renderBoard(){
   let html = "";
   for (const [, o] of ordered){
     html += `<section class="city"><div class="chead">${o.name}</div>`;
+    html += `<div class="heatmap-scroll-wrap"><div class="heatmap-grid">`;
     for (const day of days){
-      const [,m2,d2] = day.split("-");
       let cells = "";
       for (let j = 0; j < 48; j++){
         const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0};
@@ -401,7 +1492,7 @@ function renderBoard(){
           const d = c.c > 0 ? (c.a / c.c) : 1;
           const rel = Math.min(1, d / scaleMax);
           bgStyle = ` style="background:${greenRamp(rel)}"`;
-        } else if (c.e >= 6){
+        } else if (c.e >= 6 || (c.c > 0 && (c.e / c.c) >= 0.5)){
           cls = " ce";
         } else if (c.c > 0){
           cls = " cn";
@@ -409,39 +1500,100 @@ function renderBoard(){
         const lab = `${rowLabel(day)} ${slotLabel(j)} Madrid`;
         const pct = c.c > 0 ? ` (${Math.round((c.a / c.c) * 100)}%)` : "";
         const cnt = `${t("checks")} ${c.c} · ${t("slots")} ${c.a}${pct} · ${t("errors")} ${c.e}`;
-        cells += `<span class="cell${cls}"${bgStyle} data-t="${lab}|${cnt}" title="${lab}&#10;${cnt}"></span>`;
+        cells += `<span class="cell${cls}"${bgStyle} data-t="${lab}|${cnt}|${c.c}|${c.a}|${c.e}|${slotLabel(j)}|${day}" title="${lab}&#10;${cnt}"></span>`;
       }
-      html += `<div class="row${day===todayKey ? " today" : ""}"><span class="rlabel">${rowLabel(day)}</span><div class="cells">${cells}</div></div>`;
+      html += `<div class="row${day===todayKey ? " today" : ""}"><span class="rlabel sticky-col">${rowLabel(day)}</span><div class="cells">${cells}</div></div>`;
     }
-    // 底部小时刻度: 00 / 06 / 12 / 18 / 24
-    html += `<div class="row"><span class="rlabel"></span><div class="cells hours">` +
+    // Bottom hour marks: 00 / 06 / 12 / 18 / 24
+    html += `<div class="row"><span class="rlabel sticky-col"></span><div class="cells hours">` +
       [0,12,24,36].map(j => `<span style="grid-column:${j+1}">${String(j/2).padStart(2,"0")}</span>`).join("") +
       `<span style="grid-column:48; justify-self:end">24</span>` +
       `</div></div>`;
-    html += `</section>`;
+    html += `</div></div></section>`;
   }
-  document.getElementById("board").innerHTML = html;
+
+  const boardEl = document.getElementById("board");
+  if (boardEl) boardEl.innerHTML = html;
 }
 
-/* ---- 交互: 悬停 title + 手机点按详情条 ---- */
-document.getElementById("brf").onclick = () => load();
-document.getElementById("board").addEventListener("click", e => {
-  const cell = e.target.closest(".cell");
-  const info = document.getElementById("cellinfo");
-  if (!cell){ info.style.display = "none"; return; }
-  document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
-  cell.classList.add("sel");
-  const [tm, cnt] = cell.getAttribute("data-t").split("|");
-  info.textContent = "📌 " + tm + " —— " + cnt;
-  info.style.display = "block";
+/* ---- Interactive Inspection & Tooltip Popover ---- */
+const brfEl = document.getElementById("brf");
+if (brfEl) brfEl.onclick = () => load();
+
+const boardEl = document.getElementById("board");
+if (boardEl) {
+  boardEl.addEventListener("click", e => {
+    const cell = e.target.closest(".cell");
+    const info = document.getElementById("cellinfo");
+    if (!info) return;
+    if (!cell){ info.style.display = "none"; return; }
+    document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
+    cell.classList.add("sel");
+    const dataParts = (cell.getAttribute("data-t") || "").split("|");
+    const tm = dataParts[0] || "";
+    const cnt = dataParts[1] || "";
+    info.textContent = "📌 " + tm + " —— " + cnt;
+    info.style.display = "block";
+  });
+
+  // Fast hover inspect tooltip (<50ms)
+  boardEl.addEventListener("mouseover", e => {
+    const cell = e.target.closest(".cell");
+    if (!cell) return;
+    const info = document.getElementById("cellinfo");
+    if (!info) return;
+    const dataParts = (cell.getAttribute("data-t") || "").split("|");
+    if (dataParts.length >= 2) {
+      info.textContent = "📌 " + dataParts[0] + " —— " + dataParts[1];
+      info.style.display = "block";
+    }
+  });
+}
+
+// City selector pills handler
+const cityPillsContainer = document.getElementById("city-pills");
+if (cityPillsContainer) {
+  cityPillsContainer.addEventListener("click", e => {
+    const pill = e.target.closest(".pill");
+    if (!pill || !pill.dataset.city) return;
+    currentCity = pill.dataset.city;
+    document.querySelectorAll("#city-pills .pill").forEach(p => p.classList.toggle("on", p === pill));
+    document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
+    const cellinfo = document.getElementById("cellinfo");
+    if (cellinfo) cellinfo.style.display = "none";
+    renderCards(docs.length ? docs[docs.length - 1] : null);
+    renderBoard();
+    renderAnalytics();
+  });
+}
+
+// Period selector pills handler
+const periodPillsContainer = document.getElementById("period-pills");
+if (periodPillsContainer) {
+  periodPillsContainer.addEventListener("click", e => {
+    const pill = e.target.closest(".pill");
+    if (!pill || !pill.dataset.period) return;
+    currentPeriod = pill.dataset.period;
+    document.querySelectorAll("#period-pills .pill").forEach(p => p.classList.toggle("on", p === pill));
+    document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
+    const cellinfo = document.getElementById("cellinfo");
+    if (cellinfo) cellinfo.style.display = "none";
+    renderBoard();
+  });
+}
+
+// Language buttons handler
+document.querySelectorAll("[data-lang]").forEach(b => {
+  b.onclick = () => {
+    lang = b.dataset.lang;
+    safeSetStorage("lang", lang);
+    applyStatic();
+    const hasData = (compactData && compactData.provinces && Object.keys(compactData.provinces).length > 0) || docs.length > 0;
+    if (hasData) render();
+    else load();
+  };
 });
-document.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => {
-  lang = b.dataset.lang;
-  localStorage.setItem("lang", lang);
-  applyStatic();
-  if (docs.length) render();               // 空数据也要刷新提示文案
-  else load();
-});
+
 setInterval(load, 60000);
 applyStatic();
 load();
