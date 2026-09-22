@@ -168,6 +168,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+    max-width: 100%;
   }
   .filter-label {
     font-size: 12px;
@@ -181,7 +183,10 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     padding: 2px;
-    gap: 2px;
+    gap: 4px;
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
   }
   .pill {
     border: none;
@@ -588,9 +593,21 @@
       align-items: stretch;
       gap: 10px;
     }
+    .filter-group {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
     .segmented-control {
-      overflow-x: auto;
-      white-space: nowrap;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
       -webkit-overflow-scrolling: touch;
     }
   }
@@ -715,6 +732,7 @@ const I18N = {
     confidence: "置信度",
     conf_high: "高",
     conf_med: "中",
+    conf_medium: "中",
     conf_low: "低",
     golden_tip: "建议在黄金时段开始前 5 分钟提前登录西班牙官方预约网站并准备好手机验证码。",
     golden_empty_title: "暂无足够放号规律数据",
@@ -762,6 +780,7 @@ const I18N = {
     confidence: "Confidence",
     conf_high: "High",
     conf_med: "Medium",
+    conf_medium: "Medium",
     conf_low: "Low",
     golden_tip: "Tip: Log into the official booking website 5 minutes ahead with SMS verification ready.",
     golden_empty_title: "No Release Patterns Detected Yet",
@@ -809,6 +828,7 @@ const I18N = {
     confidence: "Confianza",
     conf_high: "Alta",
     conf_med: "Media",
+    conf_medium: "Media",
     conf_low: "Baja",
     golden_tip: "Consejo: Inicie sesión en la web oficial 5 minutos antes con la verificación por SMS lista.",
     golden_empty_title: "Sin patrones de cita registrados aún",
@@ -830,10 +850,11 @@ try {
     lang = localStorage.getItem("lang");
   }
 } catch (e) {}
-if (!lang) {
+if (!lang || !I18N[lang]) {
   const n = (typeof navigator !== "undefined" && navigator.language ? navigator.language : "").toLowerCase();
   lang = n.startsWith("es") ? "es" : (n.startsWith("zh") ? "zh" : "en");
 }
+if (!lang || !I18N[lang]) lang = "zh";
 const t = k => (I18N[lang] && I18N[lang][k] !== undefined ? I18N[lang][k] : (I18N.en[k] ?? k));
 
 function safeSetStorage(key, val) {
