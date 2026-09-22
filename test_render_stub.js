@@ -394,28 +394,29 @@ setTimeout(() => {
   const board = elementsRegistry['board'] ? elementsRegistry['board'].innerHTML : '';
   const banner = elementsRegistry['banner'] ? elementsRegistry['banner'].innerHTML : '';
 
-  const hasCities = ['Madrid', 'Barcelona', 'Valencia'].every(n => cards.includes(n) || board.includes(n));
-  const noLasPalmas = !(cards + board).includes('Las Palmas');
+  const hasCities = ['Madrid', 'Valencia'].every(n => cards.includes(n) || board.includes(n));
+  const noExcludedProvinces = !(cards + board).includes('Las Palmas') && !(cards + board).includes('Barcelona');
 
-  console.log('cards 渲染:', cards.length, '字节, 含 Madrid/Barcelona/Valencia 卡:',
-    ['Madrid', 'Barcelona', 'Valencia'].map(n => cards.includes(n) || board.includes(n)).join('/'));
+  console.log('cards 渲染:', cards.length, '字节, 含 Madrid/Valencia 卡:',
+    ['Madrid', 'Valencia'].map(n => cards.includes(n) || board.includes(n)).join('/'));
   console.log('board 渲染:', board.length, '字节');
   console.log('banner:', banner.length ? '有号横幅' : '无号(隐藏)');
-  console.log('白名单外省份残留:', !noLasPalmas);
+  console.log('排除省份(Barcelona/Las Palmas)残留:', !noExcludedProvinces);
 
-  const okBase = cards.length > 100 && board.length > 100 && hasCities && noLasPalmas;
+  const okBase = cards.length > 100 && board.length > 100 && hasCities && noExcludedProvinces;
 
-  // Assert R1: Legend contains yellow CL@VE indicator
+  // Assert R1: Legend does not contain CL@VE indicators
   const legendMatch = html.match(/<div id="legend"[^>]*>([\s\S]*?)<\/div>/i);
   const legendHtml = legendMatch ? legendMatch[1] : '';
   const claveI18nEl = documentStub.querySelector('[data-i18n="lg_clave"]');
-  const hasClaveLegend = (legendHtml.includes('var(--amber)') || legendHtml.includes('#f59e0b')) &&
-    legendHtml.includes('lg_clave') &&
-    Boolean(claveI18nEl && claveI18nEl.innerHTML && claveI18nEl.innerHTML.length > 0);
-  console.log('legend CL@VE 琥珀/黄色图例项:', hasClaveLegend ? 'PASS' : 'FAIL');
+  const noClaveLegend = !legendHtml.includes('var(--amber)') &&
+    !legendHtml.includes('#f59e0b') &&
+    !legendHtml.includes('lg_clave') &&
+    !claveI18nEl;
+  console.log('legend 无 CL@VE 琥珀/黄色图例项残留:', noClaveLegend ? 'PASS' : 'FAIL');
 
-  // Assert R2: Real-time Cards with CLAVE_AVAILABLE, earliest capsule, and collapsible offices
-  let cardClavePass = false;
+  // Assert R2: Real-time Cards with HAS_CITAS, earliest capsule, and collapsible offices
+  let cardPass = false;
   if (windowStub._cita && windowStub._cita.renderCards) {
     const testDoc = {
       _t: Date.now(),
@@ -424,8 +425,7 @@ setTimeout(() => {
           province: "28",
           province_name: "Madrid",
           available: true,
-          kind: "CLAVE_AVAILABLE",
-          clave_only: true,
+          kind: "HAS_CITAS",
           earliest: { date: "2026-09-28", time: "10:30" },
           offices: ["CNP MADRID PADRE PIQUER", "COMISARIA DE ALCALA"]
         }
@@ -433,30 +433,29 @@ setTimeout(() => {
     };
     windowStub._cita.renderCards(testDoc);
     const updatedCards = elementsRegistry['cards'] ? elementsRegistry['cards'].innerHTML : '';
-    const hasClaveCard = updatedCards.includes('card clave') && (updatedCards.includes('仅限电子签') || updatedCards.includes('CL@VE'));
-    const hasEarliestCapsule = updatedCards.includes('capsule-earliest') && updatedCards.includes('2026-09-28 10:30');
+    const hasCard = updatedCards.includes('card ok') && !updatedCards.includes('clave');
+    const hasEarliestCapsule = updatedCards.includes('capsule-earliest ok') && updatedCards.includes('2026-09-28 10:30');
     const hasOfficesBadges = updatedCards.includes('CNP MADRID PADRE PIQUER') && updatedCards.includes('office-btn');
     const hasAriaControls = updatedCards.includes('aria-controls="offices-extra-28"');
-    cardClavePass = hasClaveCard && hasEarliestCapsule && hasOfficesBadges && hasAriaControls;
+    cardPass = hasCard && hasEarliestCapsule && hasOfficesBadges && hasAriaControls;
     if (windowStub._cita.setBanner) {
       windowStub._cita.setBanner(testDoc.results);
       const bannerEl = elementsRegistry['banner'];
-      const bannerPass = bannerEl && bannerEl.classList && bannerEl.classList.contains('clave') && bannerEl.innerHTML.includes('Madrid');
-      console.log('banner CL@VE 专属琥珀高亮与样式类:', bannerPass ? 'PASS' : 'FAIL');
-      cardClavePass = cardClavePass && bannerPass;
+      const bannerPass = bannerEl && (!bannerEl.classList || !bannerEl.classList.contains('clave')) && bannerEl.innerHTML.includes('Madrid');
+      console.log('banner 正常绿色放号横幅:', bannerPass ? 'PASS' : 'FAIL');
+      cardPass = cardPass && bannerPass;
     }
-    console.log('card CL@VE 状态与琥珀高亮:', hasClaveCard ? 'PASS' : 'FAIL');
+    console.log('card 放号状态正常渲染:', hasCard ? 'PASS' : 'FAIL');
     console.log('card earliest 紧凑胶囊:', hasEarliestCapsule ? 'PASS' : 'FAIL');
     console.log('card offices 轻量徽章与折叠按钮:', hasOfficesBadges ? 'PASS' : 'FAIL');
     console.log('card offices 折叠按钮具备 aria-controls 辅助属性:', hasAriaControls ? 'PASS' : 'FAIL');
 
-    // Assert: CL@VE updates lastHits (does not say "从未记录到" when CLAVE is available)
     if (windowStub._cita.card) {
       const nowMs = Date.now();
-      const claveHitCard = windowStub._cita.card(testDoc.results[0], nowMs);
-      const recordsLastHit = !claveHitCard.includes('从未记录到') && (claveHitCard.includes('刚刚') || claveHitCard.includes('最近一次有号'));
-      console.log('card CL@VE 放号准确更新最近一次有号 (lastHit):', recordsLastHit ? 'PASS' : 'FAIL');
-      cardClavePass = cardClavePass && recordsLastHit;
+      const hitCard = windowStub._cita.card(testDoc.results[0], nowMs);
+      const recordsLastHit = !hitCard.includes('从未记录到') && (hitCard.includes('刚刚') || hitCard.includes('最近一次有号'));
+      console.log('card 放号准确更新最近一次有号 (lastHit):', recordsLastHit ? 'PASS' : 'FAIL');
+      cardPass = cardPass && recordsLastHit;
     }
   }
 
@@ -481,78 +480,9 @@ setTimeout(() => {
     }
   }
 
-  // Assert R1 & R2: Yellow cell rendering, mutual exclusion, and Popover metadata
-  let boardClavePass = false;
+  // Board render verification with synthetic doc
   if (windowStub._cita && windowStub._cita.renderBoard) {
     const nowMs = Date.now();
-    const testClaveDoc = {
-      _t: nowMs,
-      results: [
-        {
-          province: "28",
-          available: true,
-          kind: "CLAVE_AVAILABLE",
-          clave_only: true,
-          checks_count: 20,
-          available_count: 5,
-          clave_count: 5,
-          offices: ["CNP MADRID PADRE PIQUER"],
-          checked_at: new Date(nowMs).toISOString()
-        }
-      ]
-    };
-    windowStub._cita.renderBoard();
-    // Re-render with test doc
-    testClaveDoc._t = nowMs;
-    // Add to docs array
-    const originalDocsLength = (windowStub._cita.docs ? windowStub._cita.docs.length : 0);
-    // Directly run board render with docs containing CL@VE
-    const updatedBoard = elementsRegistry['board'] ? elementsRegistry['board'].innerHTML : '';
-    // Check if yellow cell or amber cell exists
-    // Let's also test mutual exclusion explicitly
-    cardClavePass = cardClavePass && hasCities;
-  }
-
-  // Also test yellow cell rendering with synthetic doc
-  let yellowCellPass = false;
-  let mutualExclusionPass = false;
-  if (windowStub._cita && windowStub._cita.renderBoard) {
-    // 1. Slot with only CLAVE appointments -> must render yellow (.cy and var(--amber))
-    const nowMs = Date.now();
-    const claveOnlyDoc = {
-      _t: nowMs,
-      results: [
-        {
-          province: "28",
-          available: true,
-          kind: "CLAVE_AVAILABLE",
-          clave_only: true,
-          checks_count: 25,
-          available_count: 4,
-          clave_count: 4,
-          offices: ["CNP MADRID PADRE PIQUER"],
-          checked_at: new Date(nowMs).toISOString()
-        }
-      ]
-    };
-    // 2. Slot with mixed regular and CLAVE appointments -> must render green, NOT yellow
-    const mixedDoc = {
-      _t: nowMs - 3600000,
-      results: [
-        {
-          province: "28",
-          available: true,
-          kind: "HAS_CITAS",
-          clave_only: false,
-          checks_count: 25,
-          available_count: 6,
-          clave_count: 2,
-          offices: ["CNP MADRID POBLADOS"],
-          checked_at: new Date(nowMs - 3600000).toISOString()
-        }
-      ]
-    };
-    // Inject and re-render
     try {
       const fn = new Function('document', 'fetch', 'window', 'localStorage', 'location', 'navigator', script);
       const testFetchStub = async (url) => {
@@ -566,8 +496,8 @@ setTimeout(() => {
               provinces: {
                 "28": {
                   [new Date(nowMs).toISOString().slice(0, 10)]: {
-                    "20": [25, 4, 0, 4], // slot 20: only clave -> yellow
-                    "22": [25, 6, 0, 2]  // slot 22: mixed -> green
+                    "20": [25, 4, 0], // slot 20: [checks, available, errors]
+                    "22": [25, 6, 0]  // slot 22: [checks, available, errors]
                   }
                 }
               }
@@ -587,15 +517,15 @@ setTimeout(() => {
       fn(testDocStub, testFetchStub, testWindowStub, testWindowStub.localStorage, testWindowStub.location, testWindowStub.navigator);
       setTimeout(() => {
         const testBoard = elementsRegistry['test_board'] ? elementsRegistry['test_board'].innerHTML : '';
-        const hasYellow = testBoard.includes('class="cell cy"') && testBoard.includes('var(--amber)') && testBoard.includes('data-kind="CLAVE"');
-        const hasGreenMixed = testBoard.includes('data-kind="MIXED"') && testBoard.includes('data-regular="4"') && testBoard.includes('data-clave="2"');
-        console.log('board CL@VE 专用黄色格子渲染 (.cy / var(--amber)):', hasYellow ? 'PASS' : 'FAIL');
-        console.log('board 普通号优先互斥渲染策略 (混合号源保持绿色):', hasGreenMixed ? 'PASS' : 'FAIL');
-        const hasCityLabels = testBoard.includes('Barcelona') && testBoard.includes('Valencia') && testBoard.includes('Madrid');
-        console.log('board 各城市格子精准呈现所属城市名称 (无写死马德里):', hasCityLabels ? 'PASS' : 'FAIL');
-        const allPass = okBase && hasClaveLegend && cardClavePass && hasYellow && hasGreenMixed && hasCityLabels && legacyFormatPass;
+        const noYellow = !testBoard.includes('class="cell cy"') && !testBoard.includes('var(--amber)') && !testBoard.includes('data-kind="CLAVE"');
+        const hasGreen = testBoard.includes('data-kind="REGULAR"');
+        console.log('board 无黄色 CL@VE 残留:', noYellow ? 'PASS' : 'FAIL');
+        console.log('board 正常绿色放号渲染:', hasGreen ? 'PASS' : 'FAIL');
+        const hasCityLabels = testBoard.includes('Valencia') && testBoard.includes('Madrid') && !testBoard.includes('Barcelona');
+        console.log('board 仅监控省份 (Madrid & Valencia，无 Barcelona):', hasCityLabels ? 'PASS' : 'FAIL');
+        const allPass = okBase && noClaveLegend && cardPass && noYellow && hasGreen && hasCityLabels && legacyFormatPass;
         if (allPass) console.log('PASS 渲染链路正常');
-        console.log(allPass ? 'PASS 渲染链路与 CL@VE 互斥验证全部通过' : 'FAIL 验证未全部通过');
+        console.log(allPass ? 'PASS 渲染链路与无 CL@VE 验证全部通过' : 'FAIL 验证未全部通过');
         process.exit(allPass ? 0 : 1);
       }, 300);
       return;
@@ -604,7 +534,7 @@ setTimeout(() => {
     }
   }
 
-  const ok = okBase && hasClaveLegend && cardClavePass && legacyFormatPass;
+  const ok = okBase && noClaveLegend && cardPass && legacyFormatPass;
   console.log(ok ? 'PASS 渲染链路正常' : 'FAIL 渲染不完整');
   process.exit(ok ? 0 : 1);
 }, 800);

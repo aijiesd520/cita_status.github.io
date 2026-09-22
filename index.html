@@ -16,14 +16,11 @@
     --mut: #94a3b8;
     --accent: #10b981;
     --accent-glow: rgba(16, 185, 129, 0.25);
-    --amber: #f59e0b;
-    --amber-glow: rgba(245, 158, 11, 0.2);
     --cw: 12px;
     --cg: 2px;
     --lw: 96px;
     --g1: #9be9a8; --g2: #6cc675; --g3: #40c463; --g4: #2da44e; --g5: #1a7f37; --g6: #116329;
     --ce: #ef4444; --cn: #22304a; --cx: #141c2c;
-    --cy: #f59e0b;
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
@@ -131,21 +128,6 @@
     animation: pulse-glow 2.5s infinite ease-in-out;
     word-break: break-word;
     overflow-wrap: anywhere;
-  }
-  #banner.clave {
-    background: linear-gradient(135deg, #78350f 0%, #b45309 100%);
-    border-color: #f59e0b;
-    animation: pulse-glow-amber 2.5s infinite ease-in-out;
-  }
-  @keyframes pulse-glow-amber {
-    0%, 100% {
-      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4), inset 0 0 8px rgba(245, 158, 11, 0.2);
-      border-color: rgba(245, 158, 11, 0.8);
-    }
-    50% {
-      box-shadow: 0 0 32px rgba(245, 158, 11, 0.8), inset 0 0 16px rgba(245, 158, 11, 0.4);
-      border-color: #f59e0b;
-    }
   }
   #banner a {
     color: #fff;
@@ -393,11 +375,6 @@
     background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--card) 100%);
     box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
   }
-  .card.clave {
-    border-color: var(--amber);
-    background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, var(--card) 100%);
-    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);
-  }
   .card.err {
     border-color: var(--ce);
   }
@@ -422,7 +399,6 @@
     color: var(--mut);
   }
   .card.ok .state { color: #34d399; }
-  .card.clave .state { color: #fbbf24; }
   .card.err .state { color: #f87171; }
   .card .det {
     font-size: 13px;
@@ -445,11 +421,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .capsule-earliest.clave {
-    background: rgba(245, 158, 11, 0.12);
-    border-color: rgba(245, 158, 11, 0.35);
-    color: #fbbf24;
   }
   .capsule-earliest.ok {
     background: rgba(16, 185, 129, 0.12);
@@ -528,21 +499,6 @@
       transform: scale(0.9);
       box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
-  }
-  @keyframes radar-ripple-amber {
-    0% {
-      transform: scale(0.9);
-      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
-    }
-    70% {
-      transform: scale(1.1);
-      box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
-    }
-    100% {
-      transform: scale(0.9);
-      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
-    }
-  }
   .radar-ripple {
     display: inline-block;
     width: 8px;
@@ -552,10 +508,6 @@
     margin-right: 6px;
     vertical-align: middle;
     animation: radar-ripple 1.8s infinite ease-out;
-  }
-  .radar-ripple.amber {
-    background: #f59e0b;
-    animation: radar-ripple-amber 1.8s infinite ease-out;
   }
 
   /* Legend */
@@ -676,7 +628,6 @@
     position: relative;
   }
   .ce { background: var(--ce); }
-  .cy { background: var(--amber); }
   .cn { background: var(--cn); }
   .cell.sel {
     outline: 2px solid #38bdf8;
@@ -759,7 +710,6 @@
     <div class="segmented-control" id="city-pills">
       <button class="pill on" data-city="all" data-i18n="city_all"></button>
       <button class="pill" data-city="28" data-i18n="city_madrid"></button>
-      <button class="pill" data-city="8" data-i18n="city_barcelona"></button>
       <button class="pill" data-city="46" data-i18n="city_valencia"></button>
     </div>
   </div>
@@ -790,7 +740,6 @@
     <span class="sw-grad"></span>
     <span data-i18n="lg_more"></span>
   </span>
-  <span><span class="sw" style="background:var(--amber)"></span><span data-i18n="lg_clave"></span></span>
   <span><span class="sw" style="background:var(--ce)"></span><span data-i18n="lg_err"></span></span>
   <span><span class="sw" style="background:var(--cn)"></span><span data-i18n="lg_no"></span></span>
   <span><span class="sw" style="background:var(--cx)"></span><span data-i18n="lg_none"></span></span>
@@ -818,9 +767,9 @@ let currentPeriod = "current_week"; // "current_week", "prev_week", "last_30_day
 
 // 只展示监控中的省 (2026-09-06 起移除 Las Palmas "35")。
 // 必须在顶层声明: render()/renderCards()/renderBoard() 三处都用
-const SHOW_PROVINCES = ["28", "8", "46"];
+const SHOW_PROVINCES = ["28", "46"];
 
-/* ---- i18n: zh / en / es (Complete 61-key parity) ---- */
+/* ---- i18n: zh / en / es ---- */
 const I18N = {
   zh: {
     title: "Cita Previa 4010 放号监控",
@@ -844,7 +793,6 @@ const I18N = {
     filter_period: "统计周期",
     city_all: "全部省份",
     city_madrid: "马德里 (28)",
-    city_barcelona: "巴塞罗那 (8)",
     city_valencia: "瓦伦西亚 (46)",
     period_current_week: "当前周",
     period_prev_week: "上一周",
@@ -869,15 +817,10 @@ const I18N = {
     chart_empty: "暂无 24 小时分布数据",
     tt_time: "时间段",
     tt_rate: "有号率",
-    lg_clave: "CL@VE 电子签有号",
-    st_clave: "🔑 仅限电子签",
-    clave_badge: "仅限电子签",
     earliest_badge: "最早",
     offices_title: "可用警局",
     more_offices: "+{n} 个警局",
-    collapse_offices: "收起",
-    regular_slots: "普通号",
-    clave_slots: "电子签"
+    collapse_offices: "收起"
   },
   en: {
     title: "Cita Previa 4010 Slot Monitor",
@@ -901,7 +844,6 @@ const I18N = {
     filter_period: "Time Period",
     city_all: "All Provinces",
     city_madrid: "Madrid (28)",
-    city_barcelona: "Barcelona (8)",
     city_valencia: "Valencia (46)",
     period_current_week: "Current Week",
     period_prev_week: "Previous Week",
@@ -926,15 +868,10 @@ const I18N = {
     chart_empty: "No 24-hour distribution data available yet",
     tt_time: "Time Window",
     tt_rate: "Hit Rate",
-    lg_clave: "CL@VE Only",
-    st_clave: "🔑 CL@VE Only",
-    clave_badge: "CL@VE Only",
     earliest_badge: "Earliest",
     offices_title: "Offices",
     more_offices: "+{n} offices",
-    collapse_offices: "Collapse",
-    regular_slots: "Regular",
-    clave_slots: "CL@VE"
+    collapse_offices: "Collapse"
   },
   es: {
     title: "Monitor de citas Cita Previa 4010",
@@ -958,7 +895,6 @@ const I18N = {
     filter_period: "Periodo temporal",
     city_all: "Todas las provincias",
     city_madrid: "Madrid (28)",
-    city_barcelona: "Barcelona (8)",
     city_valencia: "Valencia (46)",
     period_current_week: "Semana actual",
     period_prev_week: "Semana anterior",
@@ -983,15 +919,10 @@ const I18N = {
     chart_empty: "Sin datos de distribución horaria disponibles",
     tt_time: "Franja horaria",
     tt_rate: "Tasa de citas",
-    lg_clave: "Solo CL@VE",
-    st_clave: "🔑 Solo CL@VE",
-    clave_badge: "Solo CL@VE",
     earliest_badge: "Más temprana",
     offices_title: "Oficinas",
     more_offices: "+{n} oficinas",
-    collapse_offices: "Plegar",
-    regular_slots: "Ordinarias",
-    clave_slots: "CL@VE"
+    collapse_offices: "Plegar"
   }
 };
 
@@ -1463,7 +1394,7 @@ function render(){
 
   // Active appointment banner
   const availNow = (latestDoc && latestDoc.results ? latestDoc.results : [])
-    .filter(r => Boolean(r.available || r.kind === "HAS_CITAS" || r.clave_only || r.kind === "CLAVE_AVAILABLE") && SHOW_PROVINCES.indexOf(String(r.province)) >= 0);
+    .filter(r => Boolean(r.available || r.kind === "HAS_CITAS") && SHOW_PROVINCES.indexOf(String(r.province)) >= 0);
   setBanner(availNow.length ? availNow : null);
 
   renderAnalytics();
@@ -1477,24 +1408,12 @@ function setBanner(list){
   if (!list || !list.length){
     b.style.display = "none";
     b.innerHTML = "";
-    if (b.classList && b.classList.remove) b.classList.remove("clave");
     return;
   }
   b.style.display = "block";
-  const hasRegular = list.some(r => !(r.clave_only || r.kind === "CLAVE_AVAILABLE"));
-  if (b.classList) {
-    if (b.classList.toggle) {
-      b.classList.toggle("clave", !hasRegular);
-    } else if (!hasRegular) {
-      if (b.classList.add) b.classList.add("clave");
-    } else {
-      if (b.classList.remove) b.classList.remove("clave");
-    }
-  }
 
   b.innerHTML = list.map(r => {
-    const isClave = Boolean(r.clave_only || r.kind === "CLAVE_AVAILABLE");
-    const badgeText = isClave ? ` ${t("st_clave")}` : ` ${t("has_slots")}`;
+    const badgeText = ` ${t("has_slots")}`;
     let earliestText = "";
     if (r.earliest) {
       let d = "";
@@ -1519,18 +1438,13 @@ function setStale(on){
 }
 
 function card(r, lastHit){
-  const isClave = Boolean(r.clave_only || r.kind === "CLAVE_AVAILABLE");
-  const isAvail = Boolean(r.available || r.kind === "HAS_CITAS" || isClave);
+  const isAvail = Boolean(r.available || r.kind === "HAS_CITAS");
 
   let cls = "no";
   let ripple = "";
   let st = t("st_no");
 
-  if (isClave) {
-    cls = "clave";
-    ripple = `<span class="radar-ripple amber"></span>`;
-    st = t("st_clave");
-  } else if (isAvail) {
+  if (isAvail) {
     cls = "ok";
     ripple = `<span class="radar-ripple"></span>`;
     st = t("st_ok");
@@ -1540,7 +1454,7 @@ function card(r, lastHit){
   }
 
   let det = "";
-  if (isAvail || isClave) {
+  if (isAvail) {
     // Earliest compact capsule
     if (r.earliest) {
       let earliestStr = "";
@@ -1553,8 +1467,7 @@ function card(r, lastHit){
       }
       if (earliestStr) {
         const safeEarliest = escapeHtml(earliestStr);
-        const earliestBadgeClass = isClave ? "clave" : "ok";
-        det += `<div class="capsule-earliest ${earliestBadgeClass}" title="📅 ${t("earliest_badge")}: ${safeEarliest}">📅 ${t("earliest_badge")}: ${safeEarliest}</div>`;
+        det += `<div class="capsule-earliest ok" title="📅 ${t("earliest_badge")}: ${safeEarliest}">📅 ${t("earliest_badge")}: ${safeEarliest}</div>`;
       }
     }
 
@@ -1621,7 +1534,7 @@ function renderCards(latestDoc){
   const lastHits = {};
   for (const d of docs) {
     for (const r of (d.results || [])){
-      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS" || r.clave_only || r.kind === "CLAVE_AVAILABLE");
+      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS");
       if (!isAvail || !r.province) continue;
       const tm = parseT(r.checked_at) || d._t;
       const pid = String(r.province);
@@ -1632,7 +1545,6 @@ function renderCards(latestDoc){
   // Fallback metadata for default provinces
   const provMeta = {
     "28": { name: "Madrid", available: false, status: "ok" },
-    "8":  { name: "Barcelona", available: false, status: "ok" },
     "46": { name: "Valencia", available: false, status: "ok" }
   };
 
@@ -1697,7 +1609,7 @@ function renderBoard(){
 
   // Aggregate cells from compactData or docs
   const provs = new Map();
-  const provNames = { "28": "Madrid", "8": "Barcelona", "46": "Valencia" };
+  const provNames = { "28": "Madrid", "46": "Valencia" };
 
   const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
 
@@ -1717,8 +1629,7 @@ function renderBoard(){
           const c = Array.isArray(triplet) ? (triplet[0] || 0) : 0;
           const a = Array.isArray(triplet) ? (triplet[1] || 0) : 0;
           const e = Array.isArray(triplet) ? (triplet[2] || 0) : 0;
-          const k = Array.isArray(triplet) ? (triplet[3] || 0) : 0;
-          targetObj.cells.set(key, { c, a, e, k, offices: [] });
+          targetObj.cells.set(key, { c, a, e, offices: [] });
         }
       }
     }
@@ -1744,18 +1655,15 @@ function renderBoard(){
       const hm = fmtHM.format(tt);
       const j = (+hm.slice(0,2))*2 + (+hm.slice(3,5) >= 30 ? 1 : 0);
       const key = fmtDayKey.format(tt) + "|" + j;
-      const c = o.cells.get(key) || {c:0, a:0, e:0, k:0, offices: []};
+      const c = o.cells.get(key) || {c:0, a:0, e:0, offices: []};
       const checks = typeof r.checks_count === "number" ? r.checks_count : 1;
-      const isClave = Boolean(r.clave_only || r.kind === "CLAVE_AVAILABLE");
-      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS" || isClave);
+      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS");
       const available = typeof r.available_count === "number" ? r.available_count : (isAvail ? 1 : 0);
       const errors = typeof r.error_count === "number" ? r.error_count : (r.status === "error" ? 1 : 0);
-      const clave = typeof r.clave_count === "number" ? r.clave_count : (isClave ? available : 0);
 
       c.c += checks;
       c.a += available;
       c.e += errors;
-      c.k = (c.k || 0) + clave;
 
       if (r.offices) {
         if (!c.offices) c.offices = [];
@@ -1791,24 +1699,16 @@ function renderBoard(){
     for (const day of days){
       let cells = "";
       for (let j = 0; j < 48; j++){
-        const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0, k:0, offices: []};
-        const reg = Math.max(0, c.a - (c.k || 0));
-        const clave = c.k || 0;
+        const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0, offices: []};
         let bgStyle = "";
         let cls = "";
         let cellKind = "NONE";
 
-        if (reg > 0){
-          // Strict mutual exclusion: regular citas exist -> render standard green
+        if (c.a > 0){
           const d = c.c > 0 ? (c.a / c.c) : 1;
           const rel = Math.min(1, d / scaleMax);
           bgStyle = ` style="background:${greenRamp(rel)}"`;
-          cellKind = clave > 0 ? "MIXED" : "REGULAR";
-        } else if (clave > 0){
-          // ONLY CL@VE citas exist -> render warm yellow / amber
-          cls = " cy";
-          bgStyle = ` style="background:var(--amber)"`;
-          cellKind = "CLAVE";
+          cellKind = "REGULAR";
         } else if (c.e >= 6 || (c.c > 0 && (c.e / c.c) >= 0.5)){
           cls = " ce";
           cellKind = "ERROR";
@@ -1820,20 +1720,13 @@ function renderBoard(){
         const lab = `${rowLabel(day)} ${slotLabel(j)} ${o.name}`;
         const pct = c.c > 0 ? ` (${Math.round((c.a / c.c) * 100)}%)` : "";
         let cnt = `${t("checks")} ${c.c} · ${t("slots")} ${c.a}${pct}`;
-        if (c.a > 0) {
-          if (reg > 0 && clave > 0) {
-            cnt += ` (${t("regular_slots")} ${reg}, ${t("clave_slots")} ${clave})`;
-          } else if (clave > 0) {
-            cnt += ` (🔑 ${t("clave_slots")} ${clave})`;
-          }
-        }
         cnt += ` · ${t("errors")} ${c.e}`;
         if (c.offices && c.offices.length) {
           cnt += ` · ${t("offices_title")}: ${c.offices.join(" · ")}`;
         }
 
         const officesAttr = (c.offices && c.offices.length) ? escapeHtml(c.offices.join(" · ")) : "";
-        cells += `<span class="cell${cls}"${bgStyle} data-lab="${escapeHtml(lab)}" data-cnt="${escapeHtml(cnt)}" data-t="${escapeHtml(lab)}|${escapeHtml(cnt)}|${c.c}|${c.a}|${c.e}|${escapeHtml(slotLabel(j))}|${escapeHtml(day)}|${reg}|${clave}" data-regular="${reg}" data-clave="${clave}" data-available="${c.a}" data-kind="${cellKind}" data-offices="${officesAttr}" title="${escapeHtml(lab)}&#10;${escapeHtml(cnt)}"></span>`;
+        cells += `<span class="cell${cls}"${bgStyle} data-lab="${escapeHtml(lab)}" data-cnt="${escapeHtml(cnt)}" data-t="${escapeHtml(lab)}|${escapeHtml(cnt)}|${c.c}|${c.a}|${c.e}|${escapeHtml(slotLabel(j))}|${escapeHtml(day)}|${c.a}|0" data-regular="${c.a}" data-available="${c.a}" data-kind="${cellKind}" data-offices="${officesAttr}" title="${escapeHtml(lab)}&#10;${escapeHtml(cnt)}"></span>`;
       }
       html += `<div class="row${day===todayKey ? " today" : ""}"><span class="rlabel sticky-col">${rowLabel(day)}</span><div class="cells">${cells}</div></div>`;
     }
