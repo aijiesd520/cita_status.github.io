@@ -23,6 +23,7 @@
     --lw: 96px;
     --g1: #9be9a8; --g2: #6cc675; --g3: #40c463; --g4: #2da44e; --g5: #1a7f37; --g6: #116329;
     --ce: #ef4444; --cn: #22304a; --cx: #141c2c;
+    --cy: #f59e0b;
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
@@ -128,6 +129,23 @@
     font-weight: 600;
     margin-bottom: 14px;
     animation: pulse-glow 2.5s infinite ease-in-out;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  #banner.clave {
+    background: linear-gradient(135deg, #78350f 0%, #b45309 100%);
+    border-color: #f59e0b;
+    animation: pulse-glow-amber 2.5s infinite ease-in-out;
+  }
+  @keyframes pulse-glow-amber {
+    0%, 100% {
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4), inset 0 0 8px rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.8);
+    }
+    50% {
+      box-shadow: 0 0 32px rgba(245, 158, 11, 0.8), inset 0 0 16px rgba(245, 158, 11, 0.4);
+      border-color: #f59e0b;
+    }
   }
   #banner a {
     color: #fff;
@@ -375,6 +393,11 @@
     background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--card) 100%);
     box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
   }
+  .card.clave {
+    border-color: var(--amber);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, var(--card) 100%);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);
+  }
   .card.err {
     border-color: var(--ce);
   }
@@ -399,11 +422,90 @@
     color: var(--mut);
   }
   .card.ok .state { color: #34d399; }
+  .card.clave .state { color: #fbbf24; }
   .card.err .state { color: #f87171; }
   .card .det {
     font-size: 13px;
     line-height: 1.5;
     color: #cbd5e1;
+  }
+  .capsule-earliest {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 4px 0 6px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .capsule-earliest.clave {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+  }
+  .capsule-earliest.ok {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.35);
+    color: #34d399;
+  }
+  .offices-container {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 100%;
+  }
+  .offices-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    max-width: 100%;
+  }
+  .office-tag {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    font-size: 11px;
+    color: #cbd5e1;
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .office-btn {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    font-size: 11px;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: all 0.15s ease;
+  }
+  .office-btn:hover {
+    background: rgba(59, 130, 246, 0.22);
+    color: #93c5fd;
+  }
+  .offices-collapse {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+    max-width: 100%;
   }
   .card .last {
     font-size: 12px;
@@ -427,6 +529,20 @@
       box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
   }
+  @keyframes radar-ripple-amber {
+    0% {
+      transform: scale(0.9);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+    70% {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+    }
+    100% {
+      transform: scale(0.9);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+  }
   .radar-ripple {
     display: inline-block;
     width: 8px;
@@ -436,6 +552,10 @@
     margin-right: 6px;
     vertical-align: middle;
     animation: radar-ripple 1.8s infinite ease-out;
+  }
+  .radar-ripple.amber {
+    background: #f59e0b;
+    animation: radar-ripple-amber 1.8s infinite ease-out;
   }
 
   /* Legend */
@@ -483,6 +603,8 @@
     font-size: 13px;
     margin-bottom: 12px;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* Heatmap board & sticky scroll container */
@@ -554,6 +676,7 @@
     position: relative;
   }
   .ce { background: var(--ce); }
+  .cy { background: var(--amber); }
   .cn { background: var(--cn); }
   .cell.sel {
     outline: 2px solid #38bdf8;
@@ -667,6 +790,7 @@
     <span class="sw-grad"></span>
     <span data-i18n="lg_more"></span>
   </span>
+  <span><span class="sw" style="background:var(--amber)"></span><span data-i18n="lg_clave"></span></span>
   <span><span class="sw" style="background:var(--ce)"></span><span data-i18n="lg_err"></span></span>
   <span><span class="sw" style="background:var(--cn)"></span><span data-i18n="lg_no"></span></span>
   <span><span class="sw" style="background:var(--cx)"></span><span data-i18n="lg_none"></span></span>
@@ -744,7 +868,16 @@ const I18N = {
     chart_rate: "放号概率",
     chart_empty: "暂无 24 小时分布数据",
     tt_time: "时间段",
-    tt_rate: "有号率"
+    tt_rate: "有号率",
+    lg_clave: "CL@VE 电子签有号",
+    st_clave: "🔑 仅限电子签",
+    clave_badge: "仅限电子签",
+    earliest_badge: "最早",
+    offices_title: "可用警局",
+    more_offices: "+{n} 个警局",
+    collapse_offices: "收起",
+    regular_slots: "普通号",
+    clave_slots: "电子签"
   },
   en: {
     title: "Cita Previa 4010 Slot Monitor",
@@ -792,7 +925,16 @@ const I18N = {
     chart_rate: "Probability",
     chart_empty: "No 24-hour distribution data available yet",
     tt_time: "Time Window",
-    tt_rate: "Hit Rate"
+    tt_rate: "Hit Rate",
+    lg_clave: "CL@VE Only",
+    st_clave: "🔑 CL@VE Only",
+    clave_badge: "CL@VE Only",
+    earliest_badge: "Earliest",
+    offices_title: "Offices",
+    more_offices: "+{n} offices",
+    collapse_offices: "Collapse",
+    regular_slots: "Regular",
+    clave_slots: "CL@VE"
   },
   es: {
     title: "Monitor de citas Cita Previa 4010",
@@ -840,7 +982,16 @@ const I18N = {
     chart_rate: "Probabilidad",
     chart_empty: "Sin datos de distribución horaria disponibles",
     tt_time: "Franja horaria",
-    tt_rate: "Tasa de citas"
+    tt_rate: "Tasa de citas",
+    lg_clave: "Solo CL@VE",
+    st_clave: "🔑 Solo CL@VE",
+    clave_badge: "Solo CL@VE",
+    earliest_badge: "Más temprana",
+    offices_title: "Oficinas",
+    more_offices: "+{n} oficinas",
+    collapse_offices: "Plegar",
+    regular_slots: "Ordinarias",
+    clave_slots: "CL@VE"
   }
 };
 
@@ -863,6 +1014,18 @@ function safeSetStorage(key, val) {
       localStorage.setItem(key, String(val));
     }
   } catch (e) {}
+}
+
+const expandedOffices = new Set();
+
+function escapeHtml(s) {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function applyStatic(){
@@ -1300,7 +1463,7 @@ function render(){
 
   // Active appointment banner
   const availNow = (latestDoc && latestDoc.results ? latestDoc.results : [])
-    .filter(r => r.available && SHOW_PROVINCES.indexOf(r.province) >= 0);
+    .filter(r => Boolean(r.available || r.kind === "HAS_CITAS" || r.clave_only || r.kind === "CLAVE_AVAILABLE") && SHOW_PROVINCES.indexOf(String(r.province)) >= 0);
   setBanner(availNow.length ? availNow : null);
 
   renderAnalytics();
@@ -1314,12 +1477,38 @@ function setBanner(list){
   if (!list || !list.length){
     b.style.display = "none";
     b.innerHTML = "";
+    if (b.classList && b.classList.remove) b.classList.remove("clave");
     return;
   }
   b.style.display = "block";
-  b.innerHTML = list.map(r =>
-    `<a href="#card-${r.province}">📍 ${r.province_name || r.province} ${t("has_slots")}` +
-    (r.earliest ? ` ${t("earliest")}: ${r.earliest.date || ""} ${r.earliest.time || ""}` : "") + "</a>").join("");
+  const hasRegular = list.some(r => !(r.clave_only || r.kind === "CLAVE_AVAILABLE"));
+  if (b.classList) {
+    if (b.classList.toggle) {
+      b.classList.toggle("clave", !hasRegular);
+    } else if (!hasRegular) {
+      if (b.classList.add) b.classList.add("clave");
+    } else {
+      if (b.classList.remove) b.classList.remove("clave");
+    }
+  }
+
+  b.innerHTML = list.map(r => {
+    const isClave = Boolean(r.clave_only || r.kind === "CLAVE_AVAILABLE");
+    const badgeText = isClave ? ` ${t("st_clave")}` : ` ${t("has_slots")}`;
+    let earliestText = "";
+    if (r.earliest) {
+      let d = "";
+      if (typeof r.earliest === "string") {
+        d = r.earliest;
+      } else if (typeof r.earliest === "object" && r.earliest !== null) {
+        d = `${r.earliest.date || ""} ${r.earliest.time || ""}`.trim();
+      }
+      if (d) earliestText = ` ${t("earliest")}: ${escapeHtml(d)}`;
+    }
+    const name = escapeHtml(r.province_name || r.province);
+    const prov = escapeHtml(String(r.province));
+    return `<a href="#card-${prov}">📍 ${name}${badgeText}${earliestText}</a>`;
+  }).join("");
 }
 
 function setStale(on){
@@ -1330,19 +1519,97 @@ function setStale(on){
 }
 
 function card(r, lastHit){
-  const cls = r.available ? "ok" : (r.status === "error" ? "err" : "no");
-  const ripple = r.available ? `<span class="radar-ripple"></span>` : "";
-  const st  = r.available ? t("st_ok") : r.status === "error" ? t("st_err") : t("st_no");
-  let det = "";
-  if (r.available){
-    if (r.earliest) det += t("earliest") + ": " + (r.earliest.date || "?") + " " + (r.earliest.time || "") + "<br>";
-    if (r.offices && r.offices.length) det += t("office") + ": " + r.offices.join(" · ") + "<br>";
-  } else if (r.status === "error" && r.error){
-    det += (r.error + "").slice(0, 120) + "<br>";
+  const isClave = Boolean(r.clave_only || r.kind === "CLAVE_AVAILABLE");
+  const isAvail = Boolean(r.available || r.kind === "HAS_CITAS" || isClave);
+
+  let cls = "no";
+  let ripple = "";
+  let st = t("st_no");
+
+  if (isClave) {
+    cls = "clave";
+    ripple = `<span class="radar-ripple amber"></span>`;
+    st = t("st_clave");
+  } else if (isAvail) {
+    cls = "ok";
+    ripple = `<span class="radar-ripple"></span>`;
+    st = t("st_ok");
+  } else if (r.status === "error") {
+    cls = "err";
+    st = t("st_err");
   }
+
+  let det = "";
+  if (isAvail || isClave) {
+    // Earliest compact capsule
+    if (r.earliest) {
+      let earliestStr = "";
+      if (typeof r.earliest === "string") {
+        earliestStr = r.earliest;
+      } else if (typeof r.earliest === "object" && r.earliest !== null) {
+        const d = r.earliest.date || "";
+        const tm = r.earliest.time || "";
+        earliestStr = (d + " " + tm).trim();
+      }
+      if (earliestStr) {
+        const safeEarliest = escapeHtml(earliestStr);
+        const earliestBadgeClass = isClave ? "clave" : "ok";
+        det += `<div class="capsule-earliest ${earliestBadgeClass}" title="📅 ${t("earliest_badge")}: ${safeEarliest}">📅 ${t("earliest_badge")}: ${safeEarliest}</div>`;
+      }
+    }
+
+    // Offices lightweight badges with collapsible +N
+    let rawOffices = [];
+    if (typeof r.offices === "string" && r.offices.trim().length > 0) {
+      rawOffices = [r.offices];
+    } else if (Array.isArray(r.offices)) {
+      rawOffices = r.offices;
+    }
+    const offices = [];
+    const seenOff = new Set();
+    for (const raw of rawOffices) {
+      const o = (raw == null ? "" : String(raw)).trim();
+      if (o && !seenOff.has(o)) {
+        seenOff.add(o);
+        offices.push(o);
+      }
+    }
+
+    if (offices.length === 1) {
+      const safeOff = escapeHtml(offices[0]);
+      det += `<div class="offices-container"><div class="offices-row"><span class="office-tag" title="${safeOff}">🏢 ${safeOff}</span></div></div>`;
+    } else if (offices.length > 1) {
+      const first = offices[0];
+      const rest = offices.slice(1);
+      const restCount = rest.length;
+      const provStr = String(r.province);
+      const isExpanded = expandedOffices.has(provStr);
+      const moreText = t("more_offices").replace("{n}", restCount);
+      const btnText = isExpanded ? t("collapse_offices") : moreText;
+      const displayStyle = isExpanded ? "flex" : "none";
+      const ariaExpanded = isExpanded ? "true" : "false";
+      const safeFirst = escapeHtml(first);
+      const collapseTags = rest.map(o => {
+        const safeO = escapeHtml(o);
+        return `<span class="office-tag" title="${safeO}">🏢 ${safeO}</span>`;
+      }).join("");
+      det += `<div class="offices-container">
+        <div class="offices-row">
+          <span class="office-tag" title="${safeFirst}">🏢 ${safeFirst}</span>
+          <button type="button" class="office-btn" data-prov="${escapeHtml(provStr)}" data-count="${restCount}" aria-expanded="${ariaExpanded}" aria-controls="offices-extra-${escapeHtml(provStr)}">${btnText}</button>
+        </div>
+        <div class="offices-collapse" id="offices-extra-${escapeHtml(provStr)}" style="display:${displayStyle}">${collapseTags}</div>
+      </div>`;
+    }
+  } else if (r.status === "error" && r.error) {
+    det += `<div class="err-msg">${escapeHtml((r.error + "").slice(0, 120))}</div>`;
+  }
+
   const tm = parseT(r.checked_at);
-  return `<div class="card ${cls}" id="card-${r.province}">
-    <div class="head"><span class="name">${r.province_name || r.province}</span>
+  const provName = escapeHtml(r.province_name || r.province);
+  const provId = escapeHtml(String(r.province));
+  return `<div class="card ${cls}" id="card-${provId}">
+    <div class="head"><span class="name">${provName}</span>
     <span class="at">${isNaN(tm) ? "" : zhDT(tm)}</span></div>
     <div class="state">${ripple}${st}</div>
     <div class="det">${det}</div>
@@ -1354,9 +1621,11 @@ function renderCards(latestDoc){
   const lastHits = {};
   for (const d of docs) {
     for (const r of (d.results || [])){
-      if (!r.available || !r.province) continue;
+      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS" || r.clave_only || r.kind === "CLAVE_AVAILABLE");
+      if (!isAvail || !r.province) continue;
       const tm = parseT(r.checked_at) || d._t;
-      if (!lastHits[r.province] || tm > lastHits[r.province]) lastHits[r.province] = tm;
+      const pid = String(r.province);
+      if (!lastHits[pid] || tm > lastHits[pid]) lastHits[pid] = tm;
     }
   }
 
@@ -1385,7 +1654,7 @@ function renderCards(latestDoc){
 
   const cardsContainer = document.getElementById("cards");
   if (cardsContainer) {
-    cardsContainer.innerHTML = filtered.map(r => card(r, lastHits[r.province])).join("");
+    cardsContainer.innerHTML = filtered.map(r => card(r, lastHits[String(r.province)])).join("");
   }
 }
 
@@ -1433,7 +1702,7 @@ function renderBoard(){
   const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
 
   for (const pid of targetProvs) {
-    provs.set(pid, { name: provNames[pid] || ("省 " + pid), cells: new Map() });
+    provs.set(pid, { name: provNames[pid] || ((lang === "zh" ? "省 " : "Prov. ") + pid), cells: new Map() });
   }
 
   // Populate from compactData if available
@@ -1448,7 +1717,8 @@ function renderBoard(){
           const c = Array.isArray(triplet) ? (triplet[0] || 0) : 0;
           const a = Array.isArray(triplet) ? (triplet[1] || 0) : 0;
           const e = Array.isArray(triplet) ? (triplet[2] || 0) : 0;
-          targetObj.cells.set(key, { c, a, e });
+          const k = Array.isArray(triplet) ? (triplet[3] || 0) : 0;
+          targetObj.cells.set(key, { c, a, e, k, offices: [] });
         }
       }
     }
@@ -1468,19 +1738,34 @@ function renderBoard(){
 
       let o = provs.get(String(r.province));
       if (!o){
-        o = { name: r.province_name || provNames[r.province] || ("省 " + r.province), cells: new Map() };
+        o = { name: r.province_name || provNames[r.province] || ((lang === "zh" ? "省 " : "Prov. ") + r.province), cells: new Map() };
         provs.set(String(r.province), o);
       }
       const hm = fmtHM.format(tt);
       const j = (+hm.slice(0,2))*2 + (+hm.slice(3,5) >= 30 ? 1 : 0);
       const key = fmtDayKey.format(tt) + "|" + j;
-      const c = o.cells.get(key) || {c:0, a:0, e:0};
+      const c = o.cells.get(key) || {c:0, a:0, e:0, k:0, offices: []};
       const checks = typeof r.checks_count === "number" ? r.checks_count : 1;
-      const available = typeof r.available_count === "number" ? r.available_count : (r.available ? 1 : 0);
+      const isClave = Boolean(r.clave_only || r.kind === "CLAVE_AVAILABLE");
+      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS" || isClave);
+      const available = typeof r.available_count === "number" ? r.available_count : (isAvail ? 1 : 0);
       const errors = typeof r.error_count === "number" ? r.error_count : (r.status === "error" ? 1 : 0);
+      const clave = typeof r.clave_count === "number" ? r.clave_count : (isClave ? available : 0);
+
       c.c += checks;
       c.a += available;
       c.e += errors;
+      c.k = (c.k || 0) + clave;
+
+      if (r.offices) {
+        if (!c.offices) c.offices = [];
+        const rawOff = Array.isArray(r.offices) ? r.offices : (typeof r.offices === "string" ? [r.offices] : []);
+        for (const off of rawOff) {
+          const trimmed = (off == null ? "" : String(off)).trim().replace(/\|/g, "/");
+          if (trimmed && !c.offices.includes(trimmed)) c.offices.push(trimmed);
+        }
+      }
+
       o.cells.set(key, c);
     }
   }
@@ -1506,22 +1791,49 @@ function renderBoard(){
     for (const day of days){
       let cells = "";
       for (let j = 0; j < 48; j++){
-        const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0};
+        const c = o.cells.get(day + "|" + j) || {c:0, a:0, e:0, k:0, offices: []};
+        const reg = Math.max(0, c.a - (c.k || 0));
+        const clave = c.k || 0;
         let bgStyle = "";
         let cls = "";
-        if (c.a > 0){
+        let cellKind = "NONE";
+
+        if (reg > 0){
+          // Strict mutual exclusion: regular citas exist -> render standard green
           const d = c.c > 0 ? (c.a / c.c) : 1;
           const rel = Math.min(1, d / scaleMax);
           bgStyle = ` style="background:${greenRamp(rel)}"`;
+          cellKind = clave > 0 ? "MIXED" : "REGULAR";
+        } else if (clave > 0){
+          // ONLY CL@VE citas exist -> render warm yellow / amber
+          cls = " cy";
+          bgStyle = ` style="background:var(--amber)"`;
+          cellKind = "CLAVE";
         } else if (c.e >= 6 || (c.c > 0 && (c.e / c.c) >= 0.5)){
           cls = " ce";
+          cellKind = "ERROR";
         } else if (c.c > 0){
           cls = " cn";
+          cellKind = "EMPTY";
         }
-        const lab = `${rowLabel(day)} ${slotLabel(j)} Madrid`;
+
+        const lab = `${rowLabel(day)} ${slotLabel(j)} ${o.name}`;
         const pct = c.c > 0 ? ` (${Math.round((c.a / c.c) * 100)}%)` : "";
-        const cnt = `${t("checks")} ${c.c} · ${t("slots")} ${c.a}${pct} · ${t("errors")} ${c.e}`;
-        cells += `<span class="cell${cls}"${bgStyle} data-t="${lab}|${cnt}|${c.c}|${c.a}|${c.e}|${slotLabel(j)}|${day}" title="${lab}&#10;${cnt}"></span>`;
+        let cnt = `${t("checks")} ${c.c} · ${t("slots")} ${c.a}${pct}`;
+        if (c.a > 0) {
+          if (reg > 0 && clave > 0) {
+            cnt += ` (${t("regular_slots")} ${reg}, ${t("clave_slots")} ${clave})`;
+          } else if (clave > 0) {
+            cnt += ` (🔑 ${t("clave_slots")} ${clave})`;
+          }
+        }
+        cnt += ` · ${t("errors")} ${c.e}`;
+        if (c.offices && c.offices.length) {
+          cnt += ` · ${t("offices_title")}: ${c.offices.join(" · ")}`;
+        }
+
+        const officesAttr = (c.offices && c.offices.length) ? escapeHtml(c.offices.join(" · ")) : "";
+        cells += `<span class="cell${cls}"${bgStyle} data-lab="${escapeHtml(lab)}" data-cnt="${escapeHtml(cnt)}" data-t="${escapeHtml(lab)}|${escapeHtml(cnt)}|${c.c}|${c.a}|${c.e}|${escapeHtml(slotLabel(j))}|${escapeHtml(day)}|${reg}|${clave}" data-regular="${reg}" data-clave="${clave}" data-available="${c.a}" data-kind="${cellKind}" data-offices="${officesAttr}" title="${escapeHtml(lab)}&#10;${escapeHtml(cnt)}"></span>`;
       }
       html += `<div class="row${day===todayKey ? " today" : ""}"><span class="rlabel sticky-col">${rowLabel(day)}</span><div class="cells">${cells}</div></div>`;
     }
@@ -1543,6 +1855,22 @@ if (brfEl) brfEl.onclick = () => load();
 
 const boardEl = document.getElementById("board");
 if (boardEl) {
+  function formatCellInfo(cell) {
+    const dataParts = (cell.getAttribute("data-t") || "").split("|");
+    const tm = cell.getAttribute("data-lab") || dataParts[0] || "";
+    let cnt = cell.getAttribute("data-cnt");
+    if (!cnt && dataParts.length > 1) {
+      if (dataParts.length >= 9) {
+        cnt = dataParts.slice(1, -7).join("|");
+      } else if (dataParts.length >= 7) {
+        cnt = dataParts.slice(1, -5).join("|");
+      } else {
+        cnt = dataParts.slice(1).join("|");
+      }
+    }
+    return { tm, cnt: cnt || "" };
+  }
+
   boardEl.addEventListener("click", e => {
     const cell = e.target.closest(".cell");
     const info = document.getElementById("cellinfo");
@@ -1550,9 +1878,7 @@ if (boardEl) {
     if (!cell){ info.style.display = "none"; return; }
     document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
     cell.classList.add("sel");
-    const dataParts = (cell.getAttribute("data-t") || "").split("|");
-    const tm = dataParts[0] || "";
-    const cnt = dataParts[1] || "";
+    const { tm, cnt } = formatCellInfo(cell);
     info.textContent = "📌 " + tm + " —— " + cnt;
     info.style.display = "block";
   });
@@ -1563,9 +1889,9 @@ if (boardEl) {
     if (!cell) return;
     const info = document.getElementById("cellinfo");
     if (!info) return;
-    const dataParts = (cell.getAttribute("data-t") || "").split("|");
-    if (dataParts.length >= 2) {
-      info.textContent = "📌 " + dataParts[0] + " —— " + dataParts[1];
+    const { tm, cnt } = formatCellInfo(cell);
+    if (tm || cnt) {
+      info.textContent = "📌 " + tm + " —— " + cnt;
       info.style.display = "block";
     }
   });
@@ -1608,12 +1934,45 @@ document.querySelectorAll("[data-lang]").forEach(b => {
   b.onclick = () => {
     lang = b.dataset.lang;
     safeSetStorage("lang", lang);
+    document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
+    const cellinfo = document.getElementById("cellinfo");
+    if (cellinfo) cellinfo.style.display = "none";
     applyStatic();
     const hasData = (compactData && compactData.provinces && Object.keys(compactData.provinces).length > 0) || docs.length > 0;
     if (hasData) render();
     else load();
   };
 });
+
+// Office toggle button handler
+const cardsContainerEl = document.getElementById("cards");
+if (cardsContainerEl) {
+  cardsContainerEl.addEventListener("click", e => {
+    const btn = e.target.closest(".office-btn");
+    if (!btn) return;
+    e.stopPropagation();
+    const prov = String(btn.dataset.prov);
+    const extra = document.getElementById("offices-extra-" + prov);
+    if (!extra) return;
+    const isHidden = extra.style.display === "none" || !extra.style.display;
+    if (isHidden) {
+      extra.style.display = "flex";
+      btn.setAttribute("aria-expanded", "true");
+      btn.textContent = t("collapse_offices");
+      expandedOffices.add(prov);
+    } else {
+      extra.style.display = "none";
+      btn.setAttribute("aria-expanded", "false");
+      const count = btn.dataset.count;
+      btn.textContent = t("more_offices").replace("{n}", count);
+      expandedOffices.delete(prov);
+    }
+  });
+}
+
+if (typeof window !== "undefined") {
+  window._cita = { render, renderCards, renderBoard, card, computeGoldenHoursAnalytics, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner };
+}
 
 setInterval(load, 60000);
 applyStatic();
