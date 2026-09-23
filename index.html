@@ -686,6 +686,94 @@
       -webkit-overflow-scrolling: touch;
     }
   }
+
+  /* History Log Table */
+  .hist-section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .hist-head {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 4px;
+  }
+  .hist-desc {
+    font-size: 12px;
+    color: var(--mut);
+    margin-bottom: 12px;
+  }
+  .hist-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .hist-table th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    color: var(--mut);
+    font-weight: 600;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .hist-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line-subtle);
+    color: var(--txt);
+    word-break: break-word;
+  }
+  .hist-table tr:last-child td {
+    border-bottom: none;
+  }
+  .hist-table tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .hist-tag-avail {
+    display: inline-block;
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .hist-empty {
+    text-align: center;
+    padding: 20px;
+    color: var(--mut);
+    font-size: 13px;
+  }
+
+  /* Last-known info in cards */
+  .last-known {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px dashed rgba(59, 130, 246, 0.25);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: #94a3b8;
+  }
+  .last-known-label {
+    color: #60a5fa;
+    font-weight: 600;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  .last-known-val {
+    color: #cbd5e1;
+  }
+
+  @media (max-width: 768px) {
+    .hist-table { font-size: 12px; }
+    .hist-table th, .hist-table td { padding: 6px 6px; }
+  }
 </style>
 </head>
 <body>
@@ -745,6 +833,9 @@
   <span><span class="sw" style="background:var(--cn)"></span><span data-i18n="lg_no"></span></span>
   <span><span class="sw" style="background:var(--cx)"></span><span data-i18n="lg_none"></span></span>
 </div>
+
+<!-- Historical Availability Log -->
+<div id="hist-log"></div>
 
 <!-- Interactive Cell Inspection Popover -->
 <div id="cellinfo"></div>
@@ -945,7 +1036,18 @@ const I18N = {
     earliest_badge: "Más temprana",
     offices_title: "Oficinas",
     more_offices: "+{n} oficinas",
-    collapse_offices: "Plegar"
+    collapse_offices: "Plegar",
+    hist_offices: "Oficinas históricas",
+    hist_earliest: "Histórico más temprana",
+    hist_section_title: "📋 Historial de disponibilidad",
+    hist_section_desc: "Registros recientes donde se detectaron citas",
+    hist_col_time: "Detectado",
+    hist_col_city: "Ciudad",
+    hist_col_office: "Oficina",
+    hist_col_earliest: "Cita más temprana",
+    hist_no_records: "Sin registros de disponibilidad para el periodo seleccionado",
+    last_known_offices: "Última oficina conocida",
+    last_known_earliest: "Última cita más temprana"
   }
 };
 
