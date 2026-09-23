@@ -2003,6 +2003,7 @@ function renderHistoryLog() {
 
   // Collect availability records from docs (detailed data)
   const records = [];
+  const seenKey = new Set(); // dedup by (province, checked_at)
   for (const d of docs) {
     for (const r of (d.results || [])) {
       const pid = String(r.province);
@@ -2012,6 +2013,10 @@ function renderHistoryLog() {
 
       const tm = parseT(r.checked_at) || d._t;
       if (isNaN(tm)) continue;
+
+      const dk = pid + "|" + (r.checked_at || tm);
+      if (seenKey.has(dk)) continue;
+      seenKey.add(dk);
 
       // Extract offices
       let offices = [];
@@ -2042,12 +2047,14 @@ function renderHistoryLog() {
     }
   }
 
-  // Also scan compact data for slots with meta
+  // Also scan compact data for slots with meta — limited to current week
+  const periodDays = new Set(computePeriodDates("current_week"));
   if (compactData && compactData.provinces) {
     for (const pid of targetProvs) {
       const pData = compactData.provinces && compactData.provinces[pid];
       if (!pData) continue;
       for (const [dayKey, slots] of Object.entries(pData)) {
+        if (!periodDays.has(dayKey)) continue;
         for (const [slotStr, triplet] of Object.entries(slots)) {
           if (!Array.isArray(triplet)) continue;
           const a = triplet[1] || 0;
