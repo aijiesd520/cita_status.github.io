@@ -1563,6 +1563,93 @@ function setStale(on){
   if (on) s.textContent = t("stale");
 }
 
+/* ---- Extract last-known offices & earliest from docs + compact ---- */
+function getLastKnownMeta(pid) {
+  let lastOffices = null;
+  let lastEarliest = null;
+  let lastTime = 0;
+
+  // 1. Scan in-memory docs (today's detailed data) — most recent first
+  for (let i = docs.length - 1; i >= 0; i--) {
+    const d = docs[i];
+    for (const r of (d.results || [])) {
+      if (String(r.province) !== String(pid)) continue;
+      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS");
+      if (!isAvail) continue;
+      const tm = parseT(r.checked_at) || d._t;
+
+      // Extract offices
+      let offices = [];
+      if (Array.isArray(r.offices)) {
+        offices = r.offices.filter(o => o && String(o).trim());
+      } else if (typeof r.offices === "string" && r.offices.trim()) {
+        offices = [r.offices.trim()];
+      }
+
+      // Extract earliest
+      let earliestStr = null;
+      if (r.earliest) {
+        if (typeof r.earliest === "string") {
+          earliestStr = r.earliest;
+        } else if (typeof r.earliest === "object" && r.earliest !== null) {
+          const d2 = r.earliest.date || "";
+          const tm2 = r.earliest.time || "";
+          earliestStr = (d2 + " " + tm2).trim();
+        }
+      }
+
+      if (tm > lastTime && (offices.length || earliestStr)) {
+        lastTime = tm;
+        if (offices.length) lastOffices = offices;
+        if (earliestStr) lastEarliest = earliestStr;
+        break; // docs is sorted, most recent match is enough
+      }
+    }
+  }
+
+  // 2. Scan compact data for meta (4th element) — covers days beyond today
+  if (compactData && compactData.provinces && compactData.provinces[pid]) {
+    const pData = compactData.provinces[pid];
+    const sortedDays = Object.keys(pData).sort().reverse();
+    for (const dayKey of sortedDays) {
+      const slots = pData[dayKey];
+      const sortedSlots = Object.keys(slots).map(Number).sort((a, b) => b - a);
+      for (const slotIdx of sortedSlots) {
+        const triplet = slots[String(slotIdx)];
+        if (!Array.isArray(triplet)) continue;
+        const a = triplet[1] || 0;
+        if (a <= 0) continue;
+
+        // Check for meta (4th element)
+        const meta = triplet.length >= 4 ? triplet[3] : null;
+        if (meta && typeof meta === "object") {
+          const h = Math.floor(slotIdx / 2);
+          const m = (slotIdx % 2) * 30;
+          // Rough timestamp for comparison
+          const slotDate = new Date(dayKey + "T" + String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0") + ":00Z");
+          const slotMs = slotDate.getTime();
+
+          if (slotMs > lastTime) {
+            if (meta.o && Array.isArray(meta.o) && meta.o.length) {
+              lastOffices = meta.o;
+            }
+            if (meta.t) {
+              lastEarliest = String(meta.t);
+            }
+            if (lastOffices || lastEarliest) {
+              lastTime = slotMs;
+            }
+          }
+        }
+      }
+      // If we found something, no need to go further back
+      if (lastOffices || lastEarliest) break;
+    }
+  }
+
+  return { offices: lastOffices, earliest: lastEarliest };
+}
+
 function card(r, lastHit){
   const isAvail = Boolean(r.available || r.kind === "HAS_CITAS");
 
@@ -1642,6 +1729,24 @@ function card(r, lastHit){
     }
   } else if (r.status === "error" && r.error) {
     det += `<div class="err-msg">${escapeHtml((r.error + "").slice(0, 120))}</div>`;
+  }
+
+  // When currently no slots, show last-known offices & earliest from history
+  if (!isAvail) {
+    const known = getLastKnownMeta(String(r.province));
+    if (known.offices || known.earliest) {
+      let knownHtml = '<div class="last-known">';
+      if (known.earliest) {
+        knownHtml += `<div class="last-known-label">📅 ${t("last_known_earliest")}</div>`;
+        knownHtml += `<div class="last-known-val">${escapeHtml(known.earliest)}</div>`;
+      }
+      if (known.offices && known.offices.length) {
+        knownHtml += `<div class="last-known-label" style="margin-top:4px">🏢 ${t("last_known_offices")}</div>`;
+        knownHtml += `<div class="last-known-val">${known.offices.map(o => escapeHtml(o)).join(' · ')}</div>`;
+      }
+      knownHtml += '</div>';
+      det += knownHtml;
+    }
   }
 
   const tm = parseT(r.checked_at);
@@ -1755,7 +1860,10 @@ function renderBoard(){
           const c = Array.isArray(triplet) ? (triplet[0] || 0) : 0;
           const a = Array.isArray(triplet) ? (triplet[1] || 0) : 0;
           const e = Array.isArray(triplet) ? (triplet[2] || 0) : 0;
-          targetObj.cells.set(key, { c, a, e, offices: [] });
+          const meta = (Array.isArray(triplet) && triplet.length >= 4 && typeof triplet[3] === "object") ? triplet[3] : null;
+          const cellOffices = (meta && Array.isArray(meta.o)) ? meta.o.filter(x => x) : [];
+          const cellEarliest = (meta && meta.t) ? String(meta.t) : "";
+          targetObj.cells.set(key, { c, a, e, offices: cellOffices, earliest: cellEarliest });
         }
       }
     }
@@ -1781,7 +1889,7 @@ function renderBoard(){
       const hm = fmtHM.format(tt);
       const j = (+hm.slice(0,2))*2 + (+hm.slice(3,5) >= 30 ? 1 : 0);
       const key = fmtDayKey.format(tt) + "|" + j;
-      const c = o.cells.get(key) || {c:0, a:0, e:0, offices: []};
+      const c = o.cells.get(key) || {c:0, a:0, e:0, offices: [], earliest: ""};
       const checks = typeof r.checks_count === "number" ? r.checks_count : 1;
       const isAvail = Boolean(r.available || r.kind === "HAS_CITAS");
       const available = typeof r.available_count === "number" ? r.available_count : (isAvail ? 1 : 0);
@@ -1798,6 +1906,19 @@ function renderBoard(){
           const trimmed = (off == null ? "" : String(off)).trim().replace(/\|/g, "/");
           if (trimmed && !c.offices.includes(trimmed)) c.offices.push(trimmed);
         }
+      }
+
+      // Extract earliest from doc result
+      if (r.earliest && isAvail) {
+        let eStr = "";
+        if (typeof r.earliest === "string") {
+          eStr = r.earliest;
+        } else if (typeof r.earliest === "object" && r.earliest !== null) {
+          const ed = r.earliest.date || "";
+          const etm = r.earliest.time || "";
+          eStr = (ed + " " + etm).trim();
+        }
+        if (eStr) c.earliest = eStr;
       }
 
       o.cells.set(key, c);
@@ -1850,9 +1971,13 @@ function renderBoard(){
         if (c.offices && c.offices.length) {
           cnt += ` · ${t("offices_title")}: ${c.offices.join(" · ")}`;
         }
+        if (c.earliest) {
+          cnt += ` · ${t("earliest_badge")}: ${c.earliest}`;
+        }
 
         const officesAttr = (c.offices && c.offices.length) ? escapeHtml(c.offices.join(" · ")) : "";
-        cells += `<span class="cell${cls}"${bgStyle} data-lab="${escapeHtml(lab)}" data-cnt="${escapeHtml(cnt)}" data-t="${escapeHtml(lab)}|${escapeHtml(cnt)}|${c.c}|${c.a}|${c.e}|${escapeHtml(slotLabel(j))}|${escapeHtml(day)}|${c.a}|0" data-regular="${c.a}" data-available="${c.a}" data-kind="${cellKind}" data-offices="${officesAttr}" title="${escapeHtml(lab)}&#10;${escapeHtml(cnt)}"></span>`;
+        const earliestAttr = c.earliest ? escapeHtml(c.earliest) : "";
+        cells += `<span class="cell${cls}"${bgStyle} data-lab="${escapeHtml(lab)}" data-cnt="${escapeHtml(cnt)}" data-earliest="${earliestAttr}" data-t="${escapeHtml(lab)}|${escapeHtml(cnt)}|${c.c}|${c.a}|${c.e}|${escapeHtml(slotLabel(j))}|${escapeHtml(day)}|${c.a}|0" data-regular="${c.a}" data-available="${c.a}" data-kind="${cellKind}" data-offices="${officesAttr}" title="${escapeHtml(lab)}&#10;${escapeHtml(cnt)}"></span>`;
       }
       html += `<div class="row${day===todayKey ? " today" : ""}"><span class="rlabel sticky-col">${rowLabel(day)}</span><div class="cells">${cells}</div></div>`;
     }
@@ -1866,6 +1991,136 @@ function renderBoard(){
 
   const boardEl = document.getElementById("board");
   if (boardEl) boardEl.innerHTML = html;
+}
+
+/* ---- Historical Availability Log ---- */
+function renderHistoryLog() {
+  const logEl = document.getElementById("hist-log");
+  if (!logEl) return;
+
+  const provNames = { "28": "Madrid", "46": "Valencia", "8": "Barcelona" };
+  const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
+
+  // Collect availability records from docs (detailed data)
+  const records = [];
+  for (const d of docs) {
+    for (const r of (d.results || [])) {
+      const pid = String(r.province);
+      if (targetProvs.indexOf(pid) < 0) continue;
+      const isAvail = Boolean(r.available || r.kind === "HAS_CITAS");
+      if (!isAvail) continue;
+
+      const tm = parseT(r.checked_at) || d._t;
+      if (isNaN(tm)) continue;
+
+      // Extract offices
+      let offices = [];
+      if (Array.isArray(r.offices)) {
+        offices = r.offices.filter(o => o && String(o).trim()).map(o => String(o).trim());
+      } else if (typeof r.offices === "string" && r.offices.trim()) {
+        offices = [r.offices.trim()];
+      }
+
+      // Extract earliest
+      let earliestStr = "";
+      if (r.earliest) {
+        if (typeof r.earliest === "string") {
+          earliestStr = r.earliest;
+        } else if (typeof r.earliest === "object" && r.earliest !== null) {
+          const ed = r.earliest.date || "";
+          const etm = r.earliest.time || "";
+          earliestStr = (ed + " " + etm).trim();
+        }
+      }
+
+      records.push({
+        time: tm,
+        city: r.province_name || provNames[pid] || pid,
+        offices: offices,
+        earliest: earliestStr
+      });
+    }
+  }
+
+  // Also scan compact data for slots with meta
+  if (compactData && compactData.provinces) {
+    for (const pid of targetProvs) {
+      const pData = compactData.provinces && compactData.provinces[pid];
+      if (!pData) continue;
+      for (const [dayKey, slots] of Object.entries(pData)) {
+        for (const [slotStr, triplet] of Object.entries(slots)) {
+          if (!Array.isArray(triplet)) continue;
+          const a = triplet[1] || 0;
+          if (a <= 0) continue;
+          const meta = triplet.length >= 4 ? triplet[3] : null;
+          const slotIdx = parseInt(slotStr, 10);
+          const h = Math.floor(slotIdx / 2);
+          const m = (slotIdx % 2) * 30;
+          const slotDate = new Date(dayKey + "T" + String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + ":00+01:00");
+          const slotMs = slotDate.getTime();
+          if (isNaN(slotMs)) continue;
+
+          // Check if this record already exists in docs-based records (dedup by approximate time)
+          const isDup = records.some(rec => Math.abs(rec.time - slotMs) < 1800000 && rec.city === (provNames[pid] || pid));
+          if (isDup) continue;
+
+          const offices = (meta && Array.isArray(meta.o)) ? meta.o.filter(x => x) : [];
+          const earliest = (meta && meta.t) ? String(meta.t) : "";
+
+          // Only add if we have meaningful data (offices or earliest)
+          if (offices.length || earliest) {
+            records.push({
+              time: slotMs,
+              city: provNames[pid] || pid,
+              offices: offices,
+              earliest: earliest
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Sort by time descending, limit to 30
+  records.sort((a, b) => b.time - a.time);
+  const display = records.slice(0, 30);
+
+  if (display.length === 0) {
+    logEl.innerHTML = `<div class="hist-section">
+      <div class="hist-head">${t("hist_section_title")}</div>
+      <div class="hist-desc">${t("hist_section_desc")}</div>
+      <div class="hist-empty">${t("hist_no_records")}</div>
+    </div>`;
+    return;
+  }
+
+  let rows = "";
+  for (const rec of display) {
+    const timeStr = zhDT(rec.time);
+    const agoStr = rel(Date.now() - rec.time);
+    const offStr = rec.offices.length ? rec.offices.map(o => escapeHtml(o)).join("<br>") : "-";
+    const earStr = rec.earliest ? escapeHtml(rec.earliest) : "-";
+    rows += `<tr>
+      <td>${escapeHtml(timeStr)}<br><span style="color:var(--mut);font-size:11px">${escapeHtml(agoStr)}</span></td>
+      <td><span class="hist-tag-avail">${escapeHtml(rec.city)}</span></td>
+      <td>${offStr}</td>
+      <td>${earStr}</td>
+    </tr>`;
+  }
+
+  logEl.innerHTML = `<div class="hist-section">
+    <div class="hist-head">${t("hist_section_title")}</div>
+    <div class="hist-desc">${t("hist_section_desc")}</div>
+    <table class="hist-table">
+      <thead><tr>
+        <th>${t("hist_col_time")}</th>
+        <th>${t("hist_col_city")}</th>
+        <th>${t("hist_col_office")}</th>
+        <th>${t("hist_col_earliest")}</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
 }
 
 /* ---- Interactive Inspection & Tooltip Popover ---- */
@@ -1930,6 +2185,7 @@ if (cityPillsContainer) {
     renderCards(docs.length ? docs[docs.length - 1] : null);
     renderBoard();
     renderAnalytics();
+    renderHistoryLog();
   });
 }
 
@@ -1990,7 +2246,7 @@ if (cardsContainerEl) {
 }
 
 if (typeof window !== "undefined") {
-  window._cita = { render, renderCards, renderBoard, card, computeGoldenHoursAnalytics, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner };
+  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner };
 }
 
 setInterval(load, 60000);
