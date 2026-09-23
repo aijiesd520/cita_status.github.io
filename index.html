@@ -2048,7 +2048,7 @@ function renderHistoryLog() {
   }
 
   // Also scan compact data for slots with meta — limited to current week
-  const periodDays = new Set(computePeriodDates("current_week"));
+  const periodDays = new Set(computePeriodDates(currentPeriod));
   if (compactData && compactData.provinces) {
     for (const pid of targetProvs) {
       const pData = compactData.provinces && compactData.provinces[pid];
@@ -2208,6 +2208,7 @@ if (periodPillsContainer) {
     const cellinfo = document.getElementById("cellinfo");
     if (cellinfo) cellinfo.style.display = "none";
     renderBoard();
+    renderHistoryLog();
   });
 }
 
