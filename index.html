@@ -29,9 +29,43 @@
 
   @media (max-width: 768px) {
     :root {
-      --cw: 10px;
-      --cg: 1.5px;
-      --lw: 78px;
+      --cw: 14px;
+      --cg: 2.5px;
+      --lw: 80px;
+    }
+
+    .cell {
+      position: relative;
+      touch-action: pan-x pan-y;
+    }
+    .cell::before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      bottom: -5px;
+      left: -3px;
+      right: -3px;
+    }
+    .cell:hover {
+      transform: none;
+    }
+
+    #cellinfo {
+      position: fixed;
+      bottom: max(12px, env(safe-area-inset-bottom, 12px));
+      left: 12px;
+      right: 12px;
+      max-width: 520px;
+      margin: 0 auto;
+      z-index: 1000;
+      border: 1px solid #3b82f6;
+      background: rgba(21, 30, 50, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(59, 130, 246, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      animation: cellinfo-slide-up 0.18s cubic-bezier(0.16, 1, 0.3, 1);
     }
   }
 
@@ -560,6 +594,93 @@
     overflow-wrap: anywhere;
   }
 
+  @keyframes cellinfo-slide-up {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Card inner components */
+  .cellinfo-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .cellinfo-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #f8fafc;
+  }
+  .cellinfo-close {
+    background: transparent;
+    border: none;
+    color: var(--mut);
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .cellinfo-close:hover {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .cellinfo-stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: #cbd5e1;
+  }
+  .cellinfo-badge-avail {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    font-weight: 600;
+  }
+  .cellinfo-badge-empty {
+    background: rgba(148, 163, 184, 0.12);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    font-weight: 600;
+  }
+  .cellinfo-badge-err {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    font-weight: 600;
+  }
+  .cellinfo-section {
+    margin-top: 6px;
+    border-top: 1px dashed var(--line);
+    padding-top: 6px;
+  }
+  .cellinfo-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mut);
+    margin-bottom: 4px;
+  }
+  .cellinfo-offices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
   /* Heatmap board & sticky scroll container */
   .city {
     background: var(--card);
@@ -834,15 +955,15 @@
   <span><span class="sw" style="background:var(--cx)"></span><span data-i18n="lg_none"></span></span>
 </div>
 
-<!-- Historical Availability Log -->
-<div id="hist-log"></div>
-
 <!-- Interactive Cell Inspection Popover -->
 <div id="cellinfo"></div>
 <div id="msg" hidden></div>
 
 <!-- Heatmap Matrix Board -->
 <div id="board"></div>
+
+<!-- Historical Availability Log -->
+<div id="hist-log"></div>
 
 <footer data-i18n="footer"></footer>
 
@@ -2134,6 +2255,12 @@ function renderHistoryLog() {
 const brfEl = document.getElementById("brf");
 if (brfEl) brfEl.onclick = () => load();
 
+function dismissCellInfo() {
+  document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
+  const info = document.getElementById("cellinfo");
+  if (info) info.style.display = "none";
+}
+
 const boardEl = document.getElementById("board");
 if (boardEl) {
   function formatCellInfo(cell) {
@@ -2152,31 +2279,164 @@ if (boardEl) {
     return { tm, cnt: cnt || "" };
   }
 
-  boardEl.addEventListener("click", e => {
-    const cell = e.target.closest(".cell");
+  function renderCellInfo(cell) {
     const info = document.getElementById("cellinfo");
     if (!info) return;
-    if (!cell){ info.style.display = "none"; return; }
+
+    const lab = cell.getAttribute("data-lab") || "";
+    const rawEarliest = cell.getAttribute("data-earliest") || "";
+    const earliest = (rawEarliest && rawEarliest !== "null" && rawEarliest !== "undefined") ? rawEarliest : "";
+    const officesRaw = cell.getAttribute("data-offices") || "";
+    const offices = officesRaw ? officesRaw.split(" · ").map(s => s.trim()).filter(s => s && s !== "null" && s !== "undefined") : [];
+    const kind = cell.getAttribute("data-kind") || "NONE";
+    const avail = parseInt(cell.getAttribute("data-available") || "0", 10) || 0;
+
+    const dataParts = (cell.getAttribute("data-t") || "").split("|");
+    let checks = 0, errors = 0, slot = "", day = "";
+    if (dataParts.length >= 7) {
+      checks = parseInt(dataParts[2] || "0", 10) || 0;
+      errors = parseInt(dataParts[4] || "0", 10) || 0;
+      slot = dataParts[5] || "";
+      day = dataParts[6] || "";
+    }
+
+    const { tm } = formatCellInfo(cell);
+    const titleText = (tm && tm !== "null" && tm !== "undefined") ? tm : ((lab && lab !== "null" && lab !== "undefined") ? lab : (((day + " " + slot).trim()) || (t("title") || "Cita Previa")));
+
+    let html = `<div class="cellinfo-head">
+    <div class="cellinfo-title">
+      <span>📌 ${escapeHtml(titleText)}</span>
+    </div>
+    <button class="cellinfo-close" id="cellinfo-close-btn" aria-label="Close">✕</button>
+  </div>`;
+
+    let statusBadge = "";
+    if (avail > 0 || kind === "REGULAR") {
+      statusBadge = `<span class="cellinfo-badge-avail">${t("st_ok")}: ${avail}</span>`;
+    } else if (kind === "ERROR" || errors > 0) {
+      statusBadge = `<span class="cellinfo-badge-err">${t("st_err")}: ${errors}</span>`;
+    } else if (checks > 0) {
+      statusBadge = `<span class="cellinfo-badge-empty">${t("st_no")}</span>`;
+    } else {
+      statusBadge = `<span class="cellinfo-badge-empty">${t("lg_none")}</span>`;
+    }
+
+    html += `<div class="cellinfo-stats">
+    ${statusBadge}
+    <span>${t("checks")}: <b>${checks}</b></span>
+    <span>${t("slots")}: <b>${avail}</b></span>
+    <span>${t("errors")}: <b>${errors}</b></span>
+  </div>`;
+
+    if (earliest) {
+      html += `<div class="cellinfo-section">
+      <span class="capsule-earliest ok">⚡ ${t("earliest")}: ${escapeHtml(earliest)}</span>
+    </div>`;
+    }
+
+    if (offices.length > 0) {
+      html += `<div class="cellinfo-section">
+      <div class="cellinfo-section-title">🏛️ ${t("offices_title")} (${offices.length}):</div>
+      <div class="cellinfo-offices">
+        ${offices.map(o => `<span class="office-tag">${escapeHtml(o)}</span>`).join("")}
+      </div>
+    </div>`;
+    }
+
+    info.innerHTML = html;
+    info.style.display = "block";
+
+    const closeBtn = document.getElementById("cellinfo-close-btn");
+    if (closeBtn) {
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        dismissCellInfo();
+      };
+    }
+  }
+
+  /* Touch & Scroll Discrimination */
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isTouchScrolling = false;
+  let touchScrollTimeout = null;
+  let scrollDebounceTimer = null;
+  let isGridScrolling = false;
+
+  boardEl.addEventListener("touchstart", e => {
+    if (e.touches && e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isTouchScrolling = false;
+      clearTimeout(touchScrollTimeout);
+    }
+  }, { passive: true });
+
+  boardEl.addEventListener("touchmove", e => {
+    if (e.touches && e.touches.length === 1) {
+      const dx = Math.abs(e.touches[0].clientX - touchStartX);
+      const dy = Math.abs(e.touches[0].clientY - touchStartY);
+      if (dx > 8 || dy > 8) {
+        isTouchScrolling = true;
+      }
+    }
+  }, { passive: true });
+
+  boardEl.addEventListener("touchend", e => {
+    if (isTouchScrolling) {
+      touchScrollTimeout = setTimeout(() => {
+        isTouchScrolling = false;
+      }, 250);
+    }
+  }, { passive: true });
+
+  boardEl.addEventListener("scroll", e => {
+    if (e.target && e.target.classList && e.target.classList.contains("heatmap-scroll-wrap")) {
+      isGridScrolling = true;
+      clearTimeout(scrollDebounceTimer);
+      scrollDebounceTimer = setTimeout(() => {
+        isGridScrolling = false;
+      }, 150);
+    }
+  }, true);
+
+  boardEl.addEventListener("click", e => {
+    if (isTouchScrolling || isGridScrolling) {
+      isTouchScrolling = false;
+      return;
+    }
+
+    const cell = e.target.closest(".cell");
+    if (!cell) {
+      if (!e.target.closest(".heatmap-scroll-wrap")) {
+        dismissCellInfo();
+      }
+      return;
+    }
+
     document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
     cell.classList.add("sel");
-    const { tm, cnt } = formatCellInfo(cell);
-    info.textContent = "📌 " + tm + " —— " + cnt;
-    info.style.display = "block";
+    renderCellInfo(cell);
   });
 
   // Fast hover inspect tooltip (<50ms)
   boardEl.addEventListener("mouseover", e => {
+    if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) return;
     const cell = e.target.closest(".cell");
     if (!cell) return;
-    const info = document.getElementById("cellinfo");
-    if (!info) return;
-    const { tm, cnt } = formatCellInfo(cell);
-    if (tm || cnt) {
-      info.textContent = "📌 " + tm + " —— " + cnt;
-      info.style.display = "block";
-    }
+    renderCellInfo(cell);
   });
 }
+
+/* Tap outside listener */
+document.addEventListener("click", e => {
+  const info = document.getElementById("cellinfo");
+  if (!info || info.style.display === "none") return;
+  if (e.target.closest("#cellinfo")) return;
+  if (e.target.closest(".cell")) return;
+  if (e.target.closest(".heatmap-scroll-wrap")) return;
+  dismissCellInfo();
+});
 
 // City selector pills handler
 const cityPillsContainer = document.getElementById("city-pills");
