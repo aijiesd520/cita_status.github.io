@@ -1081,7 +1081,17 @@
 </div>
 
 <!-- Interactive Cell Inspection Popover -->
-<div id="cellinfo"></div>
+<div id="cellinfo-zone">
+  <div id="cellinfo" class="is-placeholder">
+    <div class="cellinfo-placeholder">
+      <div class="cellinfo-placeholder-icon">🔍</div>
+      <div class="cellinfo-placeholder-body">
+        <div class="cellinfo-placeholder-title" data-i18n="cellinfo_guide">悬停或点击格子查看时段详情</div>
+        <div class="cellinfo-placeholder-desc" data-i18n="cellinfo_hint">支持查看放号状态、检查次数、最早可约时间及对应办理点</div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="msg" hidden></div>
 
 <!-- Heatmap Matrix Board -->
@@ -1170,7 +1180,9 @@ const I18N = {
     hist_col_earliest: "最早可约",
     hist_no_records: "所选时段暂无放号记录",
     last_known_offices: "上次放号警局",
-    last_known_earliest: "上次最早可约"
+    last_known_earliest: "上次最早可约",
+    cellinfo_guide: "悬停或点击格子查看时段详情",
+    cellinfo_hint: "支持查看放号状态、检查次数、最早可约时间及对应办理点"
   },
   en: {
     title: "Cita Previa 4010 Slot Monitor",
@@ -1232,7 +1244,9 @@ const I18N = {
     hist_col_earliest: "Earliest Slot",
     hist_no_records: "No availability records for selected period",
     last_known_offices: "Last Known Office",
-    last_known_earliest: "Last Known Earliest"
+    last_known_earliest: "Last Known Earliest",
+    cellinfo_guide: "Hover or click a cell to inspect time slot details",
+    cellinfo_hint: "View appointment availability, check counts, earliest slot, and police offices"
   },
   es: {
     title: "Monitor de citas Cita Previa 4010",
@@ -1294,7 +1308,9 @@ const I18N = {
     hist_col_earliest: "Cita más temprana",
     hist_no_records: "Sin registros de disponibilidad para el periodo seleccionado",
     last_known_offices: "Última oficina conocida",
-    last_known_earliest: "Última cita más temprana"
+    last_known_earliest: "Última cita más temprana",
+    cellinfo_guide: "Pase el ratón o haga clic en una celda para ver detalles",
+    cellinfo_hint: "Consulte disponibilidad, número de comprobaciones, cita más temprana y oficinas"
   }
 };
 
