@@ -1498,8 +1498,7 @@ async function load(){
 
   const msg = document.getElementById("msg");
   if (msg) msg.hidden = true;
-  const cellinfo = document.getElementById("cellinfo");
-  if (cellinfo) cellinfo.style.display = "none";
+  dismissCellInfo();
 
   const hasData = (compactData && compactData.provinces && Object.keys(compactData.provinces).length > 0) || docs.length > 0;
   if (!hasData){
@@ -2403,10 +2402,47 @@ function renderHistoryLog() {
 const brfEl = document.getElementById("brf");
 if (brfEl) brfEl.onclick = () => load();
 
+function isMobileView() {
+  if (typeof window === "undefined") return false;
+  if (typeof window.innerWidth === "number") {
+    return window.innerWidth <= 768;
+  }
+  if (typeof window.matchMedia === "function") {
+    try {
+      const m = window.matchMedia("(max-width: 768px)");
+      return Boolean(m && m.matches);
+    } catch (_) {}
+  }
+  return false;
+}
+
+function renderCellInfoPlaceholder() {
+  const info = document.getElementById("cellinfo");
+  if (!info) return;
+  if (isMobileView()) {
+    info.style.display = "none";
+    return;
+  }
+  info.classList.add("is-placeholder");
+  info.innerHTML = `<div class="cellinfo-placeholder">
+    <div class="cellinfo-placeholder-icon">🔍</div>
+    <div class="cellinfo-placeholder-body">
+      <div class="cellinfo-placeholder-title" data-i18n="cellinfo_guide">${escapeHtml(t("cellinfo_guide"))}</div>
+      <div class="cellinfo-placeholder-desc" data-i18n="cellinfo_hint">${escapeHtml(t("cellinfo_hint"))}</div>
+    </div>
+  </div>`;
+  info.style.display = "block";
+}
+
 function dismissCellInfo() {
   document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
   const info = document.getElementById("cellinfo");
-  if (info) info.style.display = "none";
+  if (!info) return;
+  if (isMobileView()) {
+    info.style.display = "none";
+  } else {
+    renderCellInfoPlaceholder();
+  }
 }
 
 const boardEl = document.getElementById("board");
@@ -2474,13 +2510,8 @@ if (boardEl) {
     <span>${t("checks")}: <b>${checks}</b></span>
     <span>${t("slots")}: <b>${avail}</b></span>
     <span>${t("errors")}: <b>${errors}</b></span>
+    ${earliest ? `<span class="capsule-earliest ok">⚡ ${t("earliest")}: ${escapeHtml(earliest)}</span>` : ""}
   </div>`;
-
-    if (earliest) {
-      html += `<div class="cellinfo-section">
-      <span class="capsule-earliest ok">⚡ ${t("earliest")}: ${escapeHtml(earliest)}</span>
-    </div>`;
-    }
 
     if (offices.length > 0) {
       html += `<div class="cellinfo-section">
@@ -2491,6 +2522,7 @@ if (boardEl) {
     </div>`;
     }
 
+    info.classList.remove("is-placeholder");
     info.innerHTML = html;
     info.style.display = "block";
 
@@ -2574,6 +2606,14 @@ if (boardEl) {
     if (!cell) return;
     renderCellInfo(cell);
   });
+
+  boardEl.addEventListener("mouseleave", () => {
+    if (isMobileView()) return;
+    const hasSelected = document.querySelector(".cell.sel");
+    if (!hasSelected) {
+      renderCellInfoPlaceholder();
+    }
+  });
 }
 
 /* Tap outside listener */
@@ -2594,9 +2634,7 @@ if (cityPillsContainer) {
     if (!pill || !pill.dataset.city) return;
     currentCity = pill.dataset.city;
     document.querySelectorAll("#city-pills .pill").forEach(p => p.classList.toggle("on", p === pill));
-    document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
-    const cellinfo = document.getElementById("cellinfo");
-    if (cellinfo) cellinfo.style.display = "none";
+    dismissCellInfo();
     renderCards(docs.length ? docs[docs.length - 1] : null);
     renderBoard();
     renderAnalytics();
@@ -2612,9 +2650,7 @@ if (periodPillsContainer) {
     if (!pill || !pill.dataset.period) return;
     currentPeriod = pill.dataset.period;
     document.querySelectorAll("#period-pills .pill").forEach(p => p.classList.toggle("on", p === pill));
-    document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
-    const cellinfo = document.getElementById("cellinfo");
-    if (cellinfo) cellinfo.style.display = "none";
+    dismissCellInfo();
     renderBoard();
     renderHistoryLog();
   });
@@ -2625,9 +2661,7 @@ document.querySelectorAll("[data-lang]").forEach(b => {
   b.onclick = () => {
     lang = b.dataset.lang;
     safeSetStorage("lang", lang);
-    document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
-    const cellinfo = document.getElementById("cellinfo");
-    if (cellinfo) cellinfo.style.display = "none";
+    dismissCellInfo();
     applyStatic();
     const hasData = (compactData && compactData.provinces && Object.keys(compactData.provinces).length > 0) || docs.length > 0;
     if (hasData) render();
@@ -2662,7 +2696,19 @@ if (cardsContainerEl) {
 }
 
 if (typeof window !== "undefined") {
-  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner };
+  let prevIsMobile = isMobileView();
+  window.addEventListener("resize", () => {
+    const currentIsMobile = isMobileView();
+    if (currentIsMobile !== prevIsMobile) {
+      prevIsMobile = currentIsMobile;
+      const hasSelected = document.querySelector(".cell.sel");
+      if (!hasSelected) {
+        dismissCellInfo();
+      }
+    }
+  });
+
+  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner, dismissCellInfo, renderCellInfoPlaceholder, isMobileView };
 }
 
 setInterval(load, 60000);
