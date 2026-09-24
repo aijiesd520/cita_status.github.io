@@ -623,7 +623,7 @@
     line-height: 1.4;
   }
 
-  @media (min-width: 769px) {
+  @media (min-width: 768.01px) {
     #cellinfo-zone {
       display: block;
       height: 112px;
@@ -672,6 +672,10 @@
       left: 12px;
       right: 12px;
       max-width: 520px;
+      max-height: min(480px, calc(100vh - 24px));
+      max-height: min(480px, calc(100dvh - 24px));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       margin: 0 auto;
       z-index: 1000;
       border: 1px solid #3b82f6;
@@ -2579,10 +2583,31 @@ if (boardEl) {
     renderCellInfo(cell);
   });
 
-  boardEl.addEventListener("mouseleave", () => {
+  boardEl.addEventListener("mouseleave", e => {
     if (isMobileView()) return;
+    if (e && e.relatedTarget && (e.relatedTarget.closest("#cellinfo") || e.relatedTarget.closest("#cellinfo-zone"))) {
+      return;
+    }
     const hasSelected = document.querySelector(".cell.sel");
-    if (!hasSelected) {
+    if (hasSelected) {
+      renderCellInfo(hasSelected);
+    } else {
+      renderCellInfoPlaceholder();
+    }
+  });
+}
+
+const cellinfoZoneEl = document.getElementById("cellinfo-zone");
+if (cellinfoZoneEl) {
+  cellinfoZoneEl.addEventListener("mouseleave", e => {
+    if (isMobileView()) return;
+    if (e && e.relatedTarget && e.relatedTarget.closest("#board")) {
+      return;
+    }
+    const hasSelected = document.querySelector(".cell.sel");
+    if (hasSelected) {
+      renderCellInfo(hasSelected);
+    } else {
       renderCellInfoPlaceholder();
     }
   });
