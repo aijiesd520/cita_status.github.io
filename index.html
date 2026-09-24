@@ -977,6 +977,7 @@ let docs = [];             // 已加载的每轮文档, _t = epoch ms
 let compactData = null;    // 紧凑历史数据聚合对象 (history_compact.json)
 let currentCity = "all";   // "all", "28", "8", "46"
 let currentPeriod = "current_week"; // "current_week", "prev_week", "last_30_days"
+let initialScrolled = false;
 
 // 只展示监控中的省 (2026-09-06 起移除 Las Palmas "35")。
 // 必须在顶层声明: render()/renderCards()/renderBoard() 三处都用
@@ -1647,6 +1648,12 @@ function render(){
   renderCards(latestDoc);
   renderBoard();
   renderHistoryLog();
+
+  if (!initialScrolled && typeof window !== "undefined" && window.innerWidth <= 768) {
+    initialScrolled = true;
+    const b = document.getElementById("board");
+    if (b && b.scrollIntoView) b.scrollIntoView();
+  }
 }
 
 function setBanner(list){
