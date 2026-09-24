@@ -25,6 +25,8 @@
     --radius-md: 10px;
     --radius-lg: 14px;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
   }
 
   @media (max-width: 768px) {
@@ -46,7 +48,7 @@
       left: -3px;
       right: -3px;
     }
-    .cell:hover {
+    .cell:hover, .cell:focus-visible {
       transform: none;
     }
   }
@@ -668,14 +670,14 @@
     }
     #cellinfo {
       position: fixed;
-      bottom: max(12px, env(safe-area-inset-bottom, 12px));
+      bottom: max(12px, env(safe-area-inset-bottom, 12px), var(--safe-area-inset-bottom, 0px));
       left: 12px;
       right: 12px;
       max-width: 520px;
       height: auto;
       min-height: 0;
-      max-height: min(480px, calc(100vh - 24px));
-      max-height: min(480px, calc(100dvh - 24px));
+      max-height: min(480px, calc(100vh - max(12px, env(safe-area-inset-bottom, 12px), var(--safe-area-inset-bottom, 0px)) - max(16px, env(safe-area-inset-top, 16px), var(--safe-area-inset-top, 0px))));
+      max-height: min(480px, calc(100dvh - max(12px, env(safe-area-inset-bottom, 12px), var(--safe-area-inset-bottom, 0px)) - max(16px, env(safe-area-inset-top, 16px), var(--safe-area-inset-top, 0px))));
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       margin: 0 auto;
@@ -688,6 +690,9 @@
       border-radius: var(--radius-lg);
       padding: 12px 14px;
       animation: cellinfo-slide-up 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #cellinfo.is-placeholder {
+      display: none !important;
     }
   }
 
@@ -850,6 +855,13 @@
   .cell:hover {
     transform: scale(1.35);
     z-index: 10;
+    position: relative;
+  }
+  .cell:focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 1px;
+    transform: scale(1.35);
+    z-index: 11;
     position: relative;
   }
   .ce { background: var(--ce); }
@@ -2223,7 +2235,7 @@ function renderBoard(){
 
         const officesAttr = (c.offices && c.offices.length) ? escapeHtml(c.offices.join(" · ")) : "";
         const earliestAttr = c.earliest ? escapeHtml(c.earliest) : "";
-        cells += `<span class="cell${cls}"${bgStyle} data-lab="${escapeHtml(lab)}" data-cnt="${escapeHtml(cnt)}" data-earliest="${earliestAttr}" data-t="${escapeHtml(lab)}|${escapeHtml(cnt)}|${c.c}|${c.a}|${c.e}|${escapeHtml(slotLabel(j))}|${escapeHtml(day)}|${c.a}|0" data-regular="${c.a}" data-available="${c.a}" data-kind="${cellKind}" data-offices="${officesAttr}" title="${escapeHtml(lab)}&#10;${escapeHtml(cnt)}"></span>`;
+        cells += `<span class="cell${cls}"${bgStyle} tabindex="0" role="button" aria-label="${escapeHtml(lab)}: ${escapeHtml(cnt)}" data-lab="${escapeHtml(lab)}" data-cnt="${escapeHtml(cnt)}" data-earliest="${earliestAttr}" data-t="${escapeHtml(lab)}|${escapeHtml(cnt)}|${c.c}|${c.a}|${c.e}|${escapeHtml(slotLabel(j))}|${escapeHtml(day)}|${c.a}|0" data-regular="${c.a}" data-available="${c.a}" data-kind="${cellKind}" data-offices="${officesAttr}" title="${escapeHtml(lab)}&#10;${escapeHtml(cnt)}"></span>`;
       }
       html += `<div class="row${day===todayKey ? " today" : ""}"><span class="rlabel sticky-col">${rowLabel(day)}</span><div class="cells">${cells}</div></div>`;
     }
@@ -2597,6 +2609,37 @@ if (boardEl) {
       renderCellInfoPlaceholder();
     }
   });
+
+  // Keyboard navigation & accessibility
+  boardEl.addEventListener("focusin", e => {
+    const cell = e.target.closest(".cell");
+    if (!cell) return;
+    renderCellInfo(cell);
+  });
+
+  boardEl.addEventListener("focusout", e => {
+    if (isMobileView()) return;
+    if (e && e.relatedTarget && (e.relatedTarget.closest("#cellinfo") || e.relatedTarget.closest("#cellinfo-zone") || e.relatedTarget.closest("#board"))) {
+      return;
+    }
+    const hasSelected = document.querySelector(".cell.sel");
+    if (hasSelected) {
+      renderCellInfo(hasSelected);
+    } else {
+      renderCellInfoPlaceholder();
+    }
+  });
+
+  boardEl.addEventListener("keydown", e => {
+    const cell = e.target.closest(".cell");
+    if (!cell) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      document.querySelectorAll(".cell.sel").forEach(x => x.classList.remove("sel"));
+      cell.classList.add("sel");
+      renderCellInfo(cell);
+    }
+  });
 }
 
 const cellinfoZoneEl = document.getElementById("cellinfo-zone");
@@ -2604,6 +2647,19 @@ if (cellinfoZoneEl) {
   cellinfoZoneEl.addEventListener("mouseleave", e => {
     if (isMobileView()) return;
     if (e && e.relatedTarget && e.relatedTarget.closest("#board")) {
+      return;
+    }
+    const hasSelected = document.querySelector(".cell.sel");
+    if (hasSelected) {
+      renderCellInfo(hasSelected);
+    } else {
+      renderCellInfoPlaceholder();
+    }
+  });
+
+  cellinfoZoneEl.addEventListener("focusout", e => {
+    if (isMobileView()) return;
+    if (e && e.relatedTarget && (e.relatedTarget.closest("#board") || e.relatedTarget.closest("#cellinfo-zone"))) {
       return;
     }
     const hasSelected = document.querySelector(".cell.sel");
@@ -2623,6 +2679,12 @@ document.addEventListener("click", e => {
   if (e.target.closest(".cell")) return;
   if (e.target.closest(".heatmap-scroll-wrap")) return;
   dismissCellInfo();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    dismissCellInfo();
+  }
 });
 
 // City selector pills handler
@@ -2701,7 +2763,9 @@ if (typeof window !== "undefined") {
     if (currentIsMobile !== prevIsMobile) {
       prevIsMobile = currentIsMobile;
       const hasSelected = document.querySelector(".cell.sel");
-      if (!hasSelected) {
+      if (hasSelected) {
+        renderCellInfo(hasSelected);
+      } else {
         dismissCellInfo();
       }
     }
