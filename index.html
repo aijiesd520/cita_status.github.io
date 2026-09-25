@@ -1525,6 +1525,28 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
+function getWeekdayLabel(isoWeekday, langCode = lang, full = false) {
+  const labels = {
+    zh: {
+      short: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+      full: ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+    },
+    en: {
+      short: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      full: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    },
+    es: {
+      short: ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"],
+      full: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    }
+  };
+  const curLang = (langCode && labels[langCode]) ? langCode : "en";
+  const l = labels[curLang];
+  const arr = full ? l.full : l.short;
+  const idx = (Math.max(1, Math.min(7, parseInt(isoWeekday, 10) || 1)) - 1) % 7;
+  return arr[idx];
+}
+
 function applyStatic(){
   document.title = t("title");
   document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
