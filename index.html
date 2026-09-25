@@ -670,12 +670,16 @@
     }
     #cellinfo {
       position: fixed;
+      bottom: 12px;
       bottom: max(12px, env(safe-area-inset-bottom, 12px), var(--safe-area-inset-bottom, 0px));
       left: 12px;
       right: 12px;
       max-width: 520px;
       height: auto;
       min-height: 0;
+      max-height: 480px;
+      max-height: calc(100vh - 48px);
+      max-height: min(480px, calc(100vh - 48px));
       max-height: min(480px, calc(100vh - max(12px, env(safe-area-inset-bottom, 12px), var(--safe-area-inset-bottom, 0px)) - max(16px, env(safe-area-inset-top, 16px), var(--safe-area-inset-top, 0px))));
       max-height: min(480px, calc(100dvh - max(12px, env(safe-area-inset-bottom, 12px), var(--safe-area-inset-bottom, 0px)) - max(16px, env(safe-area-inset-top, 16px), var(--safe-area-inset-top, 0px))));
       overflow-y: auto;
@@ -2438,6 +2442,7 @@ function dismissCellInfo() {
 const boardEl = document.getElementById("board");
 if (boardEl) {
   function formatCellInfo(cell) {
+    if (!cell || typeof cell.getAttribute !== "function") return { tm: "", cnt: "" };
     const dataParts = (cell.getAttribute("data-t") || "").split("|");
     const tm = cell.getAttribute("data-lab") || dataParts[0] || "";
     let cnt = cell.getAttribute("data-cnt");
@@ -2455,7 +2460,7 @@ if (boardEl) {
 
   function renderCellInfo(cell) {
     const info = document.getElementById("cellinfo");
-    if (!info) return;
+    if (!info || !cell || typeof cell.getAttribute !== "function") return;
 
     const lab = cell.getAttribute("data-lab") || "";
     const rawEarliest = cell.getAttribute("data-earliest") || "";
