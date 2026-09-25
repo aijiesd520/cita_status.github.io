@@ -1602,6 +1602,25 @@ function parseT(s){        // "2026-09-02T08:01:12+0100" -> epoch ms (+HHMM 归�
 function zhDT(t_){         // epoch ms -> 无歧义 "09-02 01:04"（马德里墙钟）
   return fmtDayKey.format(t_).slice(5) + " " + fmtHM.format(t_);
 }
+function parseMadridSlotMs(dayKey, h, m) {
+  const utcGuess = Date.parse(dayKey + "T" + String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + ":00Z");
+  if (isNaN(utcGuess)) return NaN;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: MAD,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false
+  }).formatToParts(new Date(utcGuess));
+  const p = {};
+  for (const part of parts) p[part.type] = part.value;
+  const madHour = parseInt(p.hour === "24" ? "00" : p.hour, 10);
+  const madDay = parseInt(p.day, 10);
+  const utcDay = parseInt(dayKey.slice(8, 10), 10);
+  let offsetHours = madHour - h;
+  if (madDay > utcDay) offsetHours += 24;
+  else if (madDay < utcDay) offsetHours -= 24;
+  return utcGuess - offsetHours * 3600000;
+}
 function rel(ms){
   const m = Math.floor(ms/60000);
   if (m < 1)  return t("just_now");
@@ -2769,8 +2788,7 @@ function renderHistoryLog() {
           const slotIdx = parseInt(slotStr, 10);
           const h = Math.floor(slotIdx / 2);
           const m = (slotIdx % 2) * 30;
-          const slotDate = new Date(dayKey + "T" + String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + ":00+01:00");
-          const slotMs = slotDate.getTime();
+          const slotMs = parseMadridSlotMs(dayKey, h, m);
           if (isNaN(slotMs)) continue;
 
           // Check if this record already exists in docs-based records (dedup by approximate time)
@@ -3286,7 +3304,7 @@ if (typeof window !== "undefined") {
     }
   });
 
-  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, buildCompactFromDocs, renderAnalytics, getWeekdayLabel, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner, dismissCellInfo, renderCellInfoPlaceholder, isMobileView };
+  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, buildCompactFromDocs, renderAnalytics, getWeekdayLabel, getLastKnownMeta, parseMadridSlotMs, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner, dismissCellInfo, renderCellInfoPlaceholder, isMobileView };
 }
 
 setInterval(load, 60000);
