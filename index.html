@@ -1109,6 +1109,8 @@
     padding: 16px;
     margin-bottom: 16px;
     box-shadow: var(--shadow);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .hist-head {
     font-size: 16px;
@@ -1299,9 +1301,9 @@ const I18N = {
     updated: "数据更新 {t}（马德里 · {r}）",
     github_link: "⭐ GitHub 仓库",
     lg_slots: "有号", lg_less: "少", lg_more: "多",
-    lg_err: "检查出错", lg_no: "无号", lg_none: "未采集/无数据",
+    lg_err: "网络错误", lg_no: "无号", lg_none: "未采集/无数据",
     has_slots: "有号！", earliest: "最早", office: "地点",
-    st_ok: "有号 HAY CITA", st_err: "检查出错", st_no: "无号 NO HAY CITA",
+    st_ok: "有号 HAY CITA", st_err: "网络错误", st_no: "无号 NO HAY CITA",
     last_hit: "最近一次有号: ", never: "从未记录到",
     just_now: "刚刚", min_ago: "{n} 分钟前", hour_ago: "{n} 小时前", day_ago: "{n} 天前",
     checks: "检查", slots: "有号", errors: "错误",
@@ -1373,9 +1375,9 @@ const I18N = {
     updated: "Updated {t} (Madrid · {r})",
     github_link: "⭐ GitHub Repo",
     lg_slots: "Slots", lg_less: "Less", lg_more: "More",
-    lg_err: "Errors", lg_no: "No slots", lg_none: "No data",
+    lg_err: "Network errors", lg_no: "No slots", lg_none: "No data",
     has_slots: "has slots!", earliest: "Earliest", office: "Office",
-    st_ok: "SLOTS AVAILABLE", st_err: "Check error", st_no: "NO SLOTS",
+    st_ok: "SLOTS AVAILABLE", st_err: "Network error", st_no: "NO SLOTS",
     last_hit: "Last available: ", never: "never recorded",
     just_now: "just now", min_ago: "{n} min ago", hour_ago: "{n} h ago", day_ago: "{n} days ago",
     checks: "checks", slots: "slots", errors: "errors",
@@ -1447,9 +1449,9 @@ const I18N = {
     updated: "Actualizado {t} (Madrid · {r})",
     github_link: "⭐ Repositorio GitHub",
     lg_slots: "Citas", lg_less: "Menos", lg_more: "Más",
-    lg_err: "Errores", lg_no: "No hay cita", lg_none: "Sin datos",
+    lg_err: "Error de red", lg_no: "No hay cita", lg_none: "Sin datos",
     has_slots: "¡tiene cita!", earliest: "Lo antes", office: "Oficina",
-    st_ok: "HAY CITA", st_err: "Error de comprobación", st_no: "NO HAY CITA",
+    st_ok: "HAY CITA", st_err: "Error de red", st_no: "NO HAY CITA",
     last_hit: "Última cita: ", never: "nunca registrada",
     just_now: "ahora mismo", min_ago: "hace {n} min", hour_ago: "hace {n} h", day_ago: "hace {n} días",
     checks: "comprob.", slots: "citas", errors: "errores",
@@ -1780,7 +1782,7 @@ function buildCompactFromDocs(docList) {
 }
 
 /* ---- Golden Hours & 24h / Weekly Distribution Analytics Engine ---- */
-function computeGoldenHoursAnalytics(compact, provinceId, period = null, refMs = Date.now()) {
+function computeGoldenHoursAnalytics(compact, provinceId = "all", period = null, refMs = Date.now()) {
   const hourly = Array.from({length: 24}, (_, h) => ({ hour: h, checks: 0, hits: 0, rate: 0.0 }));
   const weekdayData = {};
   for (let w = 1; w <= 7; w++) weekdayData[w] = { weekday: w, checks: 0, hits: 0, rate: 0.0 };
@@ -1815,11 +1817,13 @@ function computeGoldenHoursAnalytics(compact, provinceId, period = null, refMs =
     } else if (typeof period === "string") {
       const dates = computePeriodDates(period, refMs);
       allowedDates = new Set(dates || []);
+    } else {
+      allowedDates = new Set();
     }
   }
 
   const provKeys = Object.keys(effectiveCompact.provinces || {});
-  const targetProvs = (provinceId === "all") ? (provKeys.length ? provKeys : SHOW_PROVINCES) : [String(provinceId)];
+  const targetProvs = (!provinceId || provinceId === "all") ? (provKeys.length ? provKeys : SHOW_PROVINCES) : [String(provinceId)];
 
   for (const pid of targetProvs) {
     const provData = (effectiveCompact.provinces && effectiveCompact.provinces[pid]) || {};
@@ -1963,8 +1967,7 @@ function renderAnalytics() {
     const pw = stats.peakWindow;
     const startStr = String(pw.startHour).padStart(2, "0") + ":00";
     const endStr = String(pw.endHour).padStart(2, "0") + ":00";
-    const wdIdx = pw.weekdayIndex % 7; // 1->1, 7->0
-    const wdStr = (lang === "zh" ? "周" : "") + I18N[lang].wd[wdIdx];
+    const wdStr = getWeekdayLabel(pw.weekdayIndex, lang, false);
     const probPct = (pw.probability * 100).toFixed(1) + "%";
     const confTierKey = "conf_" + pw.confidenceTier;
     const confClass = "conf-tier-" + pw.confidenceTier;
@@ -2432,8 +2435,6 @@ function card(r, lastHit){
         <div class="offices-collapse" id="offices-extra-${escapeHtml(provStr)}" style="display:${displayStyle}">${collapseTags}</div>
       </div>`;
     }
-  } else if (r.status === "error" && r.error) {
-    det += `<div class="err-msg">${escapeHtml((r.error + "").slice(0, 120))}</div>`;
   }
 
   // When currently no slots, show last-known offices & earliest from history
@@ -2661,7 +2662,7 @@ function renderBoard(){
           const rel = Math.min(1, d / scaleMax);
           bgStyle = ` style="background:${greenRamp(rel)}"`;
           cellKind = "REGULAR";
-        } else if (c.e >= 6 || (c.c > 0 && (c.e / c.c) >= 0.5)){
+        } else if (c.c > 0 && c.e >= c.c){
           cls = " ce";
           cellKind = "ERROR";
         } else if (c.c > 0){
@@ -2935,7 +2936,7 @@ if (boardEl) {
     let statusBadge = "";
     if (avail > 0 || kind === "REGULAR") {
       statusBadge = `<span class="cellinfo-badge-avail">${t("st_ok")}: ${avail}</span>`;
-    } else if (kind === "ERROR" || errors > 0) {
+    } else if (kind === "ERROR" || (checks > 0 && errors >= checks)) {
       statusBadge = `<span class="cellinfo-badge-err">${t("st_err")}: ${errors}</span>`;
     } else if (checks > 0) {
       statusBadge = `<span class="cellinfo-badge-empty">${t("st_no")}</span>`;
