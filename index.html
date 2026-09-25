@@ -242,6 +242,7 @@
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
   .golden-card {
     border-left: 4px solid var(--accent);
@@ -341,11 +342,17 @@
     overflow: visible;
   }
   .chart-bar {
-    transition: opacity 0.15s ease;
+    transition: opacity 0.15s ease, stroke-width 0.15s ease;
     cursor: pointer;
   }
   .chart-bar:hover {
-    opacity: 0.8;
+    opacity: 0.85;
+  }
+  .chart-bar.chart-bar-active,
+  .weekly-bar.weekly-bar-active {
+    stroke: #38bdf8 !important;
+    stroke-width: 2px !important;
+    opacity: 1 !important;
   }
 
   /* Weekly Distribution Component */
@@ -467,8 +474,13 @@
   .weekly-table tr:last-child td {
     border-bottom: none;
   }
-  .weekly-table tr:hover td {
-    background: rgba(255, 255, 255, 0.03);
+  .weekly-table tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .weekly-table tr:hover td,
+  .weekly-table tr.table-row-hover td {
+    background: rgba(139, 92, 246, 0.18) !important;
   }
   .weekly-table tr.peak-weekday-row td {
     background: rgba(16, 185, 129, 0.12);
