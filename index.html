@@ -1484,6 +1484,7 @@ const I18N = {
     weekly_title: "Distribución semanal de citas",
     weekly_subtitle: "Probabilidad y estadísticas de citas de lunes a domingo",
     weekly_empty: "Sin datos de distribución semanal disponibles",
+    weekly_badge: "7 días",
     best_day: "Mejor día para reservar",
     recommended_day: "Recomendado",
     col_weekday: "Día de la semana",
@@ -1742,16 +1743,58 @@ async function load(){
   render();
 }
 
+/* ---- Fallback Aggregation from Detailed Docs ---- */
+function buildCompactFromDocs(docList) {
+  const compact = { provinces: {} };
+  const seenCheck = new Set();
+  for (const doc of (docList || [])) {
+    for (const r of (doc.results || [])) {
+      if (!r || !r.province) continue;
+      const pid = String(r.province);
+      let tt = parseT(r.checked_at);
+      if (isNaN(tt)) tt = doc._t;
+      if (isNaN(tt)) continue;
+      const dk = pid + "|" + tt;
+      if (seenCheck.has(dk)) continue;
+      seenCheck.add(dk);
+
+      const dayStr = fmtDayKey.format(tt);
+      const hm = fmtHM.format(tt);
+      const slotIdx = (+hm.slice(0, 2)) * 2 + (+hm.slice(3, 5) >= 30 ? 1 : 0);
+      const checks = typeof r.checks_count === "number" ? r.checks_count : 1;
+      const available = typeof r.available_count === "number" ? r.available_count : (r.available ? 1 : 0);
+      const errors = typeof r.error_count === "number" ? r.error_count : (r.status === "error" ? 1 : 0);
+
+      if (!compact.provinces[pid]) compact.provinces[pid] = {};
+      if (!compact.provinces[pid][dayStr]) compact.provinces[pid][dayStr] = {};
+      const slotStr = String(slotIdx);
+      if (!compact.provinces[pid][dayStr][slotStr]) {
+        compact.provinces[pid][dayStr][slotStr] = [0, 0, 0];
+      }
+      compact.provinces[pid][dayStr][slotStr][0] += checks;
+      compact.provinces[pid][dayStr][slotStr][1] += available;
+      compact.provinces[pid][dayStr][slotStr][2] += errors;
+    }
+  }
+  return compact;
+}
+
 /* ---- Golden Hours & 24h / Weekly Distribution Analytics Engine ---- */
 function computeGoldenHoursAnalytics(compact, provinceId, period = null, refMs = Date.now()) {
   const hourly = Array.from({length: 24}, (_, h) => ({ hour: h, checks: 0, hits: 0, rate: 0.0 }));
   const weekdayData = {};
-  for (let w = 1; w <= 7; w++) weekdayData[w] = { checks: 0, hits: 0, rate: 0.0 };
+  for (let w = 1; w <= 7; w++) weekdayData[w] = { weekday: w, checks: 0, hits: 0, rate: 0.0 };
 
   let totalChecks = 0;
   let totalHits = 0;
 
-  if (!compact || !compact.provinces) {
+  let effectiveCompact = compact;
+  if ((!effectiveCompact || !effectiveCompact.provinces || Object.keys(effectiveCompact.provinces).length === 0) &&
+      typeof docs !== "undefined" && Array.isArray(docs) && docs.length > 0) {
+    effectiveCompact = buildCompactFromDocs(docs);
+  }
+
+  if (!effectiveCompact || !effectiveCompact.provinces) {
     return {
       hasData: false,
       totalChecks: 0,
@@ -1771,16 +1814,15 @@ function computeGoldenHoursAnalytics(compact, provinceId, period = null, refMs =
       allowedDates = new Set(period);
     } else if (typeof period === "string") {
       const dates = computePeriodDates(period, refMs);
-      if (dates && dates.length > 0) {
-        allowedDates = new Set(dates);
-      }
+      allowedDates = new Set(dates || []);
     }
   }
 
-  const targetProvs = (provinceId === "all") ? SHOW_PROVINCES : [String(provinceId)];
+  const provKeys = Object.keys(effectiveCompact.provinces || {});
+  const targetProvs = (provinceId === "all") ? (provKeys.length ? provKeys : SHOW_PROVINCES) : [String(provinceId)];
 
   for (const pid of targetProvs) {
-    const provData = (compact.provinces && compact.provinces[pid]) || {};
+    const provData = (effectiveCompact.provinces && effectiveCompact.provinces[pid]) || {};
     for (const [dayStr, slots] of Object.entries(provData)) {
       if (allowedDates && !allowedDates.has(dayStr)) {
         continue;
@@ -1789,8 +1831,10 @@ function computeGoldenHoursAnalytics(compact, provinceId, period = null, refMs =
       let wd = 1;
       try {
         const d = new Date(dayStr + "T12:00:00Z");
-        const utcd = d.getUTCDay();
-        wd = (utcd === 0) ? 7 : utcd; // ISO: 1=Mon..7=Sun
+        if (!isNaN(d.getTime())) {
+          const utcd = d.getUTCDay();
+          wd = (utcd === 0) ? 7 : utcd; // ISO: 1=Mon..7=Sun
+        }
       } catch (e) {}
 
       for (const [slotStr, triplet] of Object.entries(slots)) {
@@ -2111,7 +2155,7 @@ function renderAnalytics() {
         <div class="weekly-head">
           <div class="weekly-title-wrap">
             <span class="weekly-title">${t("weekly_title")}</span>
-            <span class="golden-badge weekly-badge">📅 7 Days</span>
+            <span class="golden-badge weekly-badge">📅 ${t("weekly_badge")}</span>
           </div>
           <div class="weekly-best-highlight">
             <span class="weekly-best-pill">✨ ${t("best_day")}: <strong>${bestDayLabel}</strong></span>
@@ -3119,6 +3163,68 @@ if (periodPillsContainer) {
     renderAnalytics();
     renderBoard();
     renderHistoryLog();
+// Analytics cross-highlight and tactile interaction handler
+const analyticsSectionEl = document.getElementById("analytics-section");
+if (analyticsSectionEl) {
+  analyticsSectionEl.addEventListener("mouseover", e => {
+    const weeklyBar = e.target.closest(".weekly-bar");
+    if (weeklyBar) {
+      const wd = weeklyBar.dataset.weekday;
+      document.querySelectorAll(".weekly-table tr").forEach(tr => {
+        tr.classList.toggle("table-row-hover", tr.dataset.weekday === wd);
+      });
+      return;
+    }
+    const tableRow = e.target.closest(".weekly-table tbody tr");
+    if (tableRow) {
+      const wd = tableRow.dataset.weekday;
+      document.querySelectorAll(".weekly-bar").forEach(bar => {
+        bar.classList.toggle("weekly-bar-active", bar.dataset.weekday === wd);
+      });
+      return;
+    }
+  });
+
+  analyticsSectionEl.addEventListener("mouseout", e => {
+    const weeklyBar = e.target.closest(".weekly-bar");
+    if (weeklyBar) {
+      document.querySelectorAll(".weekly-table tr.table-row-hover").forEach(tr => tr.classList.remove("table-row-hover"));
+      return;
+    }
+    const tableRow = e.target.closest(".weekly-table tbody tr");
+    if (tableRow) {
+      document.querySelectorAll(".weekly-bar.weekly-bar-active").forEach(bar => bar.classList.remove("weekly-bar-active"));
+      return;
+    }
+  });
+
+  analyticsSectionEl.addEventListener("click", e => {
+    const bar = e.target.closest(".chart-bar");
+    if (bar) {
+      const wd = bar.dataset.weekday;
+      if (wd) {
+        document.querySelectorAll(".weekly-table tr").forEach(tr => {
+          tr.classList.toggle("table-row-hover", tr.dataset.weekday === wd);
+        });
+        document.querySelectorAll(".weekly-bar").forEach(b => {
+          b.classList.toggle("weekly-bar-active", b === bar);
+        });
+      } else {
+        document.querySelectorAll("#distribution-card .chart-bar").forEach(b => {
+          b.classList.toggle("chart-bar-active", b === bar);
+        });
+      }
+    }
+    const tableRow = e.target.closest(".weekly-table tbody tr");
+    if (tableRow) {
+      const wd = tableRow.dataset.weekday;
+      document.querySelectorAll(".weekly-bar").forEach(bar => {
+        bar.classList.toggle("weekly-bar-active", bar.dataset.weekday === wd);
+      });
+      document.querySelectorAll(".weekly-table tr").forEach(tr => {
+        tr.classList.toggle("table-row-hover", tr === tableRow);
+      });
+    }
   });
 }
 
@@ -3176,7 +3282,7 @@ if (typeof window !== "undefined") {
     }
   });
 
-  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, renderAnalytics, getWeekdayLabel, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner, dismissCellInfo, renderCellInfoPlaceholder, isMobileView };
+  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, buildCompactFromDocs, renderAnalytics, getWeekdayLabel, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner, dismissCellInfo, renderCellInfoPlaceholder, isMobileView };
 }
 
 setInterval(load, 60000);
