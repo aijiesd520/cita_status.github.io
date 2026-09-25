@@ -1216,6 +1216,8 @@
       <button class="pill on" data-city="all" data-i18n="city_all"></button>
       <button class="pill" data-city="28" data-i18n="city_madrid"></button>
       <button class="pill" data-city="46" data-i18n="city_valencia"></button>
+      <button class="pill" data-city="36" data-i18n="city_vigo"></button>
+      <button class="pill" data-city="37" data-i18n="city_salamanca"></button>
     </div>
   </div>
   <div class="filter-group">
@@ -1287,7 +1289,7 @@ let initialScrolled = false;
 
 // 只展示监控中的省 (2026-09-06 起移除 Las Palmas "35")。
 // 必须在顶层声明: render()/renderCards()/renderBoard() 三处都用
-const SHOW_PROVINCES = ["28", "46"];
+const SHOW_PROVINCES = ["28", "46", "36", "37"];
 
 /* ---- i18n: zh / en / es ---- */
 const I18N = {
@@ -1314,6 +1316,8 @@ const I18N = {
     city_all: "全部省份",
     city_madrid: "马德里 (28)",
     city_valencia: "瓦伦西亚 (46)",
+    city_vigo: "维哥 (36)",
+    city_salamanca: "萨拉曼卡 (37)",
     period_current_week: "当前周",
     period_prev_week: "上一周",
     period_last_30_days: "近 30 天",
@@ -1388,6 +1392,8 @@ const I18N = {
     city_all: "All Provinces",
     city_madrid: "Madrid (28)",
     city_valencia: "Valencia (46)",
+    city_vigo: "Vigo (36)",
+    city_salamanca: "Salamanca (37)",
     period_current_week: "Current Week",
     period_prev_week: "Previous Week",
     period_last_30_days: "Past 30 Days",
@@ -1462,6 +1468,8 @@ const I18N = {
     city_all: "Todas las provincias",
     city_madrid: "Madrid (28)",
     city_valencia: "Valencia (46)",
+    city_vigo: "Vigo (36)",
+    city_salamanca: "Salamanca (37)",
     period_current_week: "Semana actual",
     period_prev_week: "Semana anterior",
     period_last_30_days: "Últimos 30 días",
@@ -2501,7 +2509,9 @@ function renderCards(latestDoc){
   // Fallback metadata for default provinces
   const provMeta = {
     "28": { name: "Madrid", available: false, status: "ok" },
-    "46": { name: "Valencia", available: false, status: "ok" }
+    "46": { name: "Valencia", available: false, status: "ok" },
+    "36": { name: "Vigo", available: false, status: "ok" },
+    "37": { name: "Salamanca", available: false, status: "ok" }
   };
 
   const results = (latestDoc && latestDoc.results && latestDoc.results.length)
@@ -2565,7 +2575,7 @@ function renderBoard(){
 
   // Aggregate cells from compactData or docs
   const provs = new Map();
-  const provNames = { "28": "Madrid", "46": "Valencia" };
+  const provNames = { "28": "Madrid", "46": "Valencia", "36": "Vigo", "37": "Salamanca" };
 
   const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
 
@@ -2723,7 +2733,7 @@ function renderHistoryLog() {
   const logEl = document.getElementById("hist-log");
   if (!logEl) return;
 
-  const provNames = { "28": "Madrid", "46": "Valencia", "8": "Barcelona" };
+  const provNames = { "28": "Madrid", "46": "Valencia", "36": "Vigo", "37": "Salamanca", "8": "Barcelona" };
   const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
 
   // Collect availability records from docs (detailed data)
