@@ -1722,8 +1722,8 @@ async function load(){
   render();
 }
 
-/* ---- Golden Hours & 24h Distribution Analytics Engine ---- */
-function computeGoldenHoursAnalytics(compact, provinceId) {
+/* ---- Golden Hours & 24h / Weekly Distribution Analytics Engine ---- */
+function computeGoldenHoursAnalytics(compact, provinceId, period = null, refMs = Date.now()) {
   const hourly = Array.from({length: 24}, (_, h) => ({ hour: h, checks: 0, hits: 0, rate: 0.0 }));
   const weekdayData = {};
   for (let w = 1; w <= 7; w++) weekdayData[w] = { checks: 0, hits: 0, rate: 0.0 };
@@ -1737,9 +1737,24 @@ function computeGoldenHoursAnalytics(compact, provinceId) {
       totalChecks: 0,
       totalHits: 0,
       peakWindow: null,
+      bestWeekday: null,
       hourlyDistribution: hourly,
       weekdayDistribution: weekdayData
     };
+  }
+
+  let allowedDates = null;
+  if (period && period !== "all" && period !== "all_time") {
+    if (period instanceof Set) {
+      allowedDates = period;
+    } else if (Array.isArray(period)) {
+      allowedDates = new Set(period);
+    } else if (typeof period === "string") {
+      const dates = computePeriodDates(period, refMs);
+      if (dates && dates.length > 0) {
+        allowedDates = new Set(dates);
+      }
+    }
   }
 
   const targetProvs = (provinceId === "all") ? SHOW_PROVINCES : [String(provinceId)];
@@ -1747,6 +1762,10 @@ function computeGoldenHoursAnalytics(compact, provinceId) {
   for (const pid of targetProvs) {
     const provData = (compact.provinces && compact.provinces[pid]) || {};
     for (const [dayStr, slots] of Object.entries(provData)) {
+      if (allowedDates && !allowedDates.has(dayStr)) {
+        continue;
+      }
+
       let wd = 1;
       try {
         const d = new Date(dayStr + "T12:00:00Z");
@@ -1791,6 +1810,7 @@ function computeGoldenHoursAnalytics(compact, provinceId) {
       totalChecks,
       totalHits,
       peakWindow: null,
+      bestWeekday: null,
       hourlyDistribution: hourly,
       weekdayDistribution: weekdayData
     };
@@ -1823,6 +1843,13 @@ function computeGoldenHoursAnalytics(compact, provinceId) {
     tier = "medium";
   }
 
+  let wdTier = "low";
+  if (totalChecks >= 50 && peakWdData.hits >= 5) {
+    wdTier = "high";
+  } else if (totalChecks >= 20 && peakWdData.hits >= 2) {
+    wdTier = "medium";
+  }
+
   return {
     hasData: true,
     totalChecks,
@@ -1834,6 +1861,13 @@ function computeGoldenHoursAnalytics(compact, provinceId) {
       probability: peakHourEntry.rate,
       confidenceTier: tier
     },
+    bestWeekday: {
+      weekdayIndex: peakWd,
+      checks: peakWdData.checks,
+      hits: peakWdData.hits,
+      rate: peakWdData.rate,
+      confidenceTier: wdTier
+    },
     hourlyDistribution: hourly,
     weekdayDistribution: weekdayData
   };
@@ -1843,9 +1877,10 @@ function computeGoldenHoursAnalytics(compact, provinceId) {
 function renderAnalytics() {
   const gCard = document.getElementById("golden-card");
   const cCard = document.getElementById("distribution-card");
+  const wCard = document.getElementById("weekly-card");
   if (!gCard || !cCard) return;
 
-  const stats = computeGoldenHoursAnalytics(compactData, currentCity);
+  const stats = computeGoldenHoursAnalytics(compactData, currentCity, currentPeriod);
 
   // 1. Golden Slot Card
   if (!stats.hasData || !stats.peakWindow) {
@@ -1930,8 +1965,8 @@ function renderAnalytics() {
       const hStr = String(h).padStart(2, "0");
       const tipText = `${hStr}:00–${String((h+1)%24).padStart(2,"0")}:00 | ${t("slots")}: ${item.hits}, ${t("checks")}: ${item.checks} (${(item.rate * 100).toFixed(1)}%)`;
 
-      barsSvg += `<rect class="chart-bar" x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isPeak ? 1.5 : 0}">
-        <title>${tipText}</title>
+      barsSvg += `<rect class="chart-bar" x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isPeak ? 1.5 : 0}" data-tip="${escapeHtml(tipText)}" data-hour="${h}">
+        <title>${escapeHtml(tipText)}</title>
       </rect>`;
 
       if (isPeak) {
@@ -1957,6 +1992,144 @@ function renderAnalytics() {
         </svg>
       </div>
     `;
+  }
+
+  // 3. Weekly (Day-of-Week) Release Probability Distribution Component
+  if (wCard) {
+    if (!stats.hasData) {
+      wCard.innerHTML = `
+        <div class="weekly-head">
+          <div class="weekly-title-wrap">
+            <span class="weekly-title">${t("weekly_title")}</span>
+            <span class="golden-badge" style="background:rgba(148,163,184,0.15);color:#94a3b8;border-color:rgba(148,163,184,0.3)">${t("confidence")}: -</span>
+          </div>
+        </div>
+        <div class="chart-subtitle">${t("weekly_subtitle")}</div>
+        <div class="empty-notice">
+          <div class="empty-icon">📅</div>
+          <div class="empty-title">${t("weekly_empty")}</div>
+          <div class="empty-desc">${t("golden_empty_desc")}</div>
+        </div>
+      `;
+    } else {
+      const bw = stats.bestWeekday || { weekdayIndex: (stats.peakWindow ? stats.peakWindow.weekdayIndex : 1), confidenceTier: "low", rate: 0, hits: 0, checks: 0 };
+      const bestWd = bw.weekdayIndex;
+      const bestDayLabel = getWeekdayLabel(bestWd, lang, true);
+      const confTier = bw.confidenceTier || "low";
+      const confTierKey = "conf_" + confTier;
+      const confClass = "conf-tier-" + confTier;
+      const bestProbPct = (bw.rate * 100).toFixed(1) + "%";
+
+      let maxWdRate = 0;
+      for (let w = 1; w <= 7; w++) {
+        const item = stats.weekdayDistribution[w];
+        if (item && item.rate > maxWdRate) maxWdRate = item.rate;
+      }
+      if (maxWdRate === 0) maxWdRate = 0.05;
+
+      const chartW = 420;
+      const chartH = 150;
+      const barW = 32;
+      const barGap = 20;
+      const totalBarsW = 7 * barW + 6 * barGap;
+      const offsetX = Math.round((chartW - totalBarsW) / 2);
+      const maxBarH = 90;
+      const baseY = 118;
+
+      let barsSvg = "";
+      let labelsSvg = "";
+
+      for (let w = 1; w <= 7; w++) {
+        const item = stats.weekdayDistribution[w] || { checks: 0, hits: 0, rate: 0.0 };
+        const isPeak = (w === bestWd);
+        const barH = item.checks > 0 ? Math.max(3, (item.rate / maxWdRate) * maxBarH) : 3;
+        const x = offsetX + (w - 1) * (barW + barGap);
+        const y = baseY - barH;
+        const fillColor = isPeak ? "#10b981" : (item.hits > 0 ? "#8b5cf6" : "#22304a");
+        const strokeColor = isPeak ? "#34d399" : "none";
+        const dayShort = getWeekdayLabel(w, lang, false);
+        const dayFull = getWeekdayLabel(w, lang, true);
+        const ratePct = (item.rate * 100).toFixed(1) + "%";
+        const tipText = `${dayFull} | ${t("col_slots")}: ${item.hits}, ${t("col_checks")}: ${item.checks} (${ratePct})`;
+
+        barsSvg += `<rect class="chart-bar weekly-bar" x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isPeak ? 1.5 : 0}" data-weekday="${w}" data-tip="${escapeHtml(tipText)}">
+          <title>${escapeHtml(tipText)}</title>
+        </rect>`;
+
+        if (isPeak) {
+          barsSvg += `<text x="${x + barW / 2}" y="${y - 6}" font-size="10" font-weight="bold" fill="#34d399" text-anchor="middle">🔥</text>`;
+        }
+
+        labelsSvg += `<text x="${x + barW / 2}" y="${baseY + 16}" font-size="10" font-weight="${isPeak ? '700' : '500'}" fill="${isPeak ? '#34d399' : '#94a3b8'}" text-anchor="middle">${dayShort}</text>`;
+      }
+
+      let tableRows = "";
+      for (let w = 1; w <= 7; w++) {
+        const item = stats.weekdayDistribution[w] || { checks: 0, hits: 0, rate: 0.0 };
+        const isPeak = (w === bestWd);
+        const dayName = getWeekdayLabel(w, lang, true);
+        const ratePct = (item.rate * 100).toFixed(1) + "%";
+        const peakRowClass = isPeak ? "peak-weekday-row" : "";
+        const bestTag = isPeak ? `<span class="weekly-best-tag" title="${t("best_day")}">✨ ${t("recommended_day")}</span>` : "";
+
+        tableRows += `
+          <tr class="${peakRowClass}" data-weekday="${w}">
+            <td>
+              <span class="day-name">${dayName}</span>
+              ${bestTag}
+            </td>
+            <td style="text-align:right">${item.checks}</td>
+            <td style="text-align:right">${item.hits}</td>
+            <td style="text-align:right">
+              <span class="rate-val ${isPeak ? 'peak-rate' : ''}">${ratePct}</span>
+            </td>
+          </tr>
+        `;
+      }
+
+      wCard.innerHTML = `
+        <div class="weekly-head">
+          <div class="weekly-title-wrap">
+            <span class="weekly-title">${t("weekly_title")}</span>
+            <span class="golden-badge weekly-badge">📅 7 Days</span>
+          </div>
+          <div class="weekly-best-highlight">
+            <span class="weekly-best-pill">✨ ${t("best_day")}: <strong>${bestDayLabel}</strong></span>
+            <span class="stat-pill"><span class="stat-label">${t("confidence")}:</span><span class="stat-val ${confClass}">${t(confTierKey)}</span></span>
+            <span class="stat-pill"><span class="stat-label">${t("prob_index")}:</span><span class="stat-val peak-rate">${bestProbPct}</span></span>
+          </div>
+        </div>
+        <div class="chart-subtitle">${t("weekly_subtitle")}</div>
+        <div class="weekly-body">
+          <div class="weekly-chart-col">
+            <div class="weekly-chart-wrap">
+              <svg class="chart-svg weekly-svg" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="xMidYMid meet">
+                <line x1="${offsetX - 8}" y1="${baseY}" x2="${chartW - offsetX + 8}" y2="${baseY}" stroke="#22304d" stroke-width="1" />
+                ${barsSvg}
+                ${labelsSvg}
+              </svg>
+            </div>
+          </div>
+          <div class="weekly-table-col">
+            <div class="weekly-table-wrap">
+              <table class="weekly-table">
+                <thead>
+                  <tr>
+                    <th>${t("col_weekday")}</th>
+                    <th style="text-align:right">${t("col_checks")}</th>
+                    <th style="text-align:right">${t("col_slots")}</th>
+                    <th style="text-align:right">${t("col_rate")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
   }
 }
 
@@ -2923,6 +3096,7 @@ if (periodPillsContainer) {
     currentPeriod = pill.dataset.period;
     document.querySelectorAll("#period-pills .pill").forEach(p => p.classList.toggle("on", p === pill));
     dismissCellInfo();
+    renderAnalytics();
     renderBoard();
     renderHistoryLog();
   });
@@ -2982,7 +3156,7 @@ if (typeof window !== "undefined") {
     }
   });
 
-  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner, dismissCellInfo, renderCellInfoPlaceholder, isMobileView };
+  window._cita = { render, renderCards, renderBoard, renderHistoryLog, card, computeGoldenHoursAnalytics, renderAnalytics, getWeekdayLabel, getLastKnownMeta, I18N, t, SHOW_PROVINCES, expandedOffices, escapeHtml, setBanner, dismissCellInfo, renderCellInfoPlaceholder, isMobileView };
 }
 
 setInterval(load, 60000);
