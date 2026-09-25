@@ -348,6 +348,146 @@
     opacity: 0.8;
   }
 
+  /* Weekly Distribution Component */
+  .weekly-card {
+    grid-column: 1 / -1;
+    border-left: 4px solid #8b5cf6;
+  }
+  .weekly-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .weekly-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .weekly-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .weekly-badge {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+  }
+  .weekly-best-highlight {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .weekly-best-pill {
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #f8fafc;
+    font-weight: 600;
+  }
+  .weekly-best-pill strong {
+    color: #c084fc;
+    margin-left: 4px;
+  }
+  .weekly-body {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 16px;
+    align-items: start;
+    margin-top: 10px;
+  }
+  @media (max-width: 900px) {
+    .weekly-body {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+  }
+  .weekly-chart-col {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .weekly-chart-wrap {
+    width: 100%;
+    min-width: 0;
+  }
+  .weekly-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  .weekly-table-col {
+    width: 100%;
+    min-width: 0;
+  }
+  .weekly-table-wrap {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: rgba(11, 15, 25, 0.4);
+  }
+  .weekly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  .weekly-table th {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line);
+    color: var(--mut);
+    font-weight: 600;
+    font-size: 11.5px;
+    white-space: nowrap;
+    background: rgba(21, 30, 50, 0.5);
+  }
+  .weekly-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line-subtle);
+    color: var(--txt);
+    white-space: nowrap;
+  }
+  .weekly-table tr:last-child td {
+    border-bottom: none;
+  }
+  .weekly-table tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .weekly-table tr.peak-weekday-row td {
+    background: rgba(16, 185, 129, 0.12);
+  }
+  .weekly-table tr.peak-weekday-row td:first-child {
+    border-left: 3px solid #10b981;
+  }
+  .weekly-best-tag {
+    display: inline-block;
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .peak-rate {
+    color: #34d399;
+    font-weight: 700;
+  }
+
   .empty-notice {
     padding: 24px 16px;
     text-align: center;
@@ -903,6 +1043,22 @@
   @media (max-width: 768px) {
     body { padding: 10px; }
     .analytics-container { grid-template-columns: 1fr; }
+    .weekly-body {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .weekly-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .weekly-best-highlight {
+      width: 100%;
+    }
+    .weekly-table th, .weekly-table td {
+      padding: 5px 6px;
+      font-size: 11.5px;
+    }
     .filter-toolbar {
       flex-direction: column;
       align-items: stretch;
@@ -1052,10 +1208,11 @@
   </div>
 </div>
 
-<!-- Release Pattern Analytics: Golden Slot Card & 24h Distribution Bar Chart -->
+<!-- Release Pattern Analytics: Golden Slot Card, 24h Distribution Chart, and Weekly Distribution Component -->
 <section id="analytics-section" class="analytics-container">
   <div id="golden-card" class="analytics-card golden-card"></div>
   <div id="distribution-card" class="analytics-card chart-card"></div>
+  <div id="weekly-card" class="analytics-card weekly-card"></div>
 </section>
 
 <!-- Real-time KPI Cards Container -->
@@ -1158,6 +1315,15 @@ const I18N = {
     chart_hour: "小时",
     chart_rate: "放号概率",
     chart_empty: "暂无 24 小时分布数据",
+    weekly_title: "每周放号概率分布",
+    weekly_subtitle: "周一至周日各工作日与周末放号概率及历史统计",
+    weekly_empty: "暂无周度分布数据",
+    best_day: "最佳放号日",
+    recommended_day: "推荐",
+    col_weekday: "星期",
+    col_checks: "检查次数",
+    col_slots: "放号次数",
+    col_rate: "放号概率",
     tt_time: "时间段",
     tt_rate: "有号率",
     earliest_badge: "最早",
@@ -1222,6 +1388,15 @@ const I18N = {
     chart_hour: "Hour",
     chart_rate: "Probability",
     chart_empty: "No 24-hour distribution data available yet",
+    weekly_title: "Weekly Release Probability",
+    weekly_subtitle: "Appointment release probability and statistics from Monday to Sunday",
+    weekly_empty: "No weekly distribution data available yet",
+    best_day: "Best Day to Book",
+    recommended_day: "Recommended",
+    col_weekday: "Day of Week",
+    col_checks: "Checks",
+    col_slots: "Release Slots",
+    col_rate: "Release Rate",
     tt_time: "Time Window",
     tt_rate: "Hit Rate",
     earliest_badge: "Earliest",
@@ -1286,6 +1461,15 @@ const I18N = {
     chart_hour: "Hora",
     chart_rate: "Probabilidad",
     chart_empty: "Sin datos de distribución horaria disponibles",
+    weekly_title: "Distribución semanal de citas",
+    weekly_subtitle: "Probabilidad y estadísticas de citas de lunes a domingo",
+    weekly_empty: "Sin datos de distribución semanal disponibles",
+    best_day: "Mejor día para reservar",
+    recommended_day: "Recomendado",
+    col_weekday: "Día de la semana",
+    col_checks: "Comprobaciones",
+    col_slots: "Citas liberadas",
+    col_rate: "Tasa de citas",
     tt_time: "Franja horaria",
     tt_rate: "Tasa de citas",
     earliest_badge: "Más temprana",
