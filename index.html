@@ -1216,7 +1216,7 @@
       <button class="pill on" data-city="all" data-i18n="city_all"></button>
       <button class="pill" data-city="28" data-i18n="city_madrid"></button>
       <button class="pill" data-city="46" data-i18n="city_valencia"></button>
-      <button class="pill" data-city="36" data-i18n="city_vigo"></button>
+      <button class="pill" data-city="36" data-i18n="city_pontevedra"></button>
       <button class="pill" data-city="37" data-i18n="city_salamanca"></button>
     </div>
   </div>
@@ -1291,6 +1291,12 @@ let initialScrolled = false;
 // 必须在顶层声明: render()/renderCards()/renderBoard() 三处都用
 const SHOW_PROVINCES = ["28", "46", "36", "37"];
 
+// 36 号省是 Pontevedra 省 (Vigo 只是省内城市); 历史数据文件里 province_name
+// 可能仍存着旧名 "Vigo", 渲染时统一归一为省名。
+function provDisplayName(pid, name) {
+  return String(pid) === "36" ? "Pontevedra" : (name || "");
+}
+
 /* ---- i18n: zh / en / es ---- */
 const I18N = {
   zh: {
@@ -1316,7 +1322,7 @@ const I18N = {
     city_all: "全部省份",
     city_madrid: "马德里 (28)",
     city_valencia: "瓦伦西亚 (46)",
-    city_vigo: "维哥 (36)",
+    city_pontevedra: "蓬特韦德拉 (36)",
     city_salamanca: "萨拉曼卡 (37)",
     period_current_week: "当前周",
     period_prev_week: "上一周",
@@ -1392,7 +1398,7 @@ const I18N = {
     city_all: "All Provinces",
     city_madrid: "Madrid (28)",
     city_valencia: "Valencia (46)",
-    city_vigo: "Vigo (36)",
+    city_pontevedra: "Pontevedra (36)",
     city_salamanca: "Salamanca (37)",
     period_current_week: "Current Week",
     period_prev_week: "Previous Week",
@@ -1468,7 +1474,7 @@ const I18N = {
     city_all: "Todas las provincias",
     city_madrid: "Madrid (28)",
     city_valencia: "Valencia (46)",
-    city_vigo: "Vigo (36)",
+    city_pontevedra: "Pontevedra (36)",
     city_salamanca: "Salamanca (37)",
     period_current_week: "Semana actual",
     period_prev_week: "Semana anterior",
@@ -2285,7 +2291,7 @@ function setBanner(list){
       }
       if (d) earliestText = ` ${t("earliest")}: ${escapeHtml(d)}`;
     }
-    const name = escapeHtml(r.province_name || r.province);
+    const name = escapeHtml(provDisplayName(r.province, r.province_name || r.province));
     const prov = escapeHtml(String(r.province));
     return `<a href="#card-${prov}">📍 ${name}${badgeText}${earliestText}</a>`;
   }).join("");
@@ -2483,7 +2489,7 @@ function card(r, lastHit){
   }
 
   const tm = parseT(r.checked_at);
-  const provName = escapeHtml(r.province_name || r.province);
+  const provName = escapeHtml(provDisplayName(r.province, r.province_name || r.province));
   const provId = escapeHtml(String(r.province));
   return `<div class="card ${cls}" id="card-${provId}">
     <div class="head"><span class="name">${provName}</span>
@@ -2510,7 +2516,7 @@ function renderCards(latestDoc){
   const provMeta = {
     "28": { name: "Madrid", available: false, status: "ok" },
     "46": { name: "Valencia", available: false, status: "ok" },
-    "36": { name: "Vigo", available: false, status: "ok" },
+    "36": { name: "Pontevedra", available: false, status: "ok" },
     "37": { name: "Salamanca", available: false, status: "ok" }
   };
 
@@ -2575,7 +2581,7 @@ function renderBoard(){
 
   // Aggregate cells from compactData or docs
   const provs = new Map();
-  const provNames = { "28": "Madrid", "46": "Valencia", "36": "Vigo", "37": "Salamanca" };
+  const provNames = { "28": "Madrid", "46": "Valencia", "36": "Pontevedra", "37": "Salamanca" };
 
   const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
 
@@ -2618,7 +2624,7 @@ function renderBoard(){
 
       let o = provs.get(String(r.province));
       if (!o){
-        o = { name: r.province_name || provNames[r.province] || ((lang === "zh" ? "省 " : "Prov. ") + r.province), cells: new Map() };
+        o = { name: provDisplayName(r.province, r.province_name) || provNames[r.province] || ((lang === "zh" ? "省 " : "Prov. ") + r.province), cells: new Map() };
         provs.set(String(r.province), o);
       }
       const hm = fmtHM.format(tt);
@@ -2733,7 +2739,7 @@ function renderHistoryLog() {
   const logEl = document.getElementById("hist-log");
   if (!logEl) return;
 
-  const provNames = { "28": "Madrid", "46": "Valencia", "36": "Vigo", "37": "Salamanca", "8": "Barcelona" };
+  const provNames = { "28": "Madrid", "46": "Valencia", "36": "Pontevedra", "37": "Salamanca", "8": "Barcelona" };
   const targetProvs = (currentCity === "all") ? SHOW_PROVINCES : [currentCity];
 
   // Collect availability records from docs (detailed data)
@@ -2775,7 +2781,7 @@ function renderHistoryLog() {
 
       records.push({
         time: tm,
-        city: r.province_name || provNames[pid] || pid,
+        city: provDisplayName(pid, r.province_name) || provNames[pid] || pid,
         offices: offices,
         earliest: earliestStr
       });
