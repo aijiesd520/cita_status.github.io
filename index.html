@@ -1190,6 +1190,113 @@
     .hist-table { font-size: 12px; }
     .hist-table th, .hist-table td { padding: 6px 6px; }
   }
+
+  /* Booking Service Banner */
+  .booking-section {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(30, 58, 138, 0.12) 100%), var(--card);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-top: 14px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .booking-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .booking-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .booking-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0 0 6px 0;
+  }
+  .booking-desc {
+    font-size: 13px;
+    color: var(--mut);
+    line-height: 1.6;
+    margin: 0 0 8px 0;
+  }
+  .booking-tip {
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .booking-action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .booking-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 20px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transition: all 0.2s ease;
+  }
+  .booking-btn:hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+  }
+  .booking-url {
+    font-size: 11px;
+    color: var(--mut);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 768px) {
+    .booking-section {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 16px;
+      gap: 16px;
+    }
+    .booking-action {
+      width: 100%;
+      align-items: stretch;
+    }
+    .booking-btn {
+      justify-content: center;
+      width: 100%;
+      padding: 12px 16px;
+    }
+    .booking-url {
+      text-align: center;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1270,6 +1377,23 @@
 
 <!-- Historical Availability Log -->
 <div id="hist-log"></div>
+
+<!-- Appointment Booking Service Callout -->
+<div id="booking-service" class="booking-section">
+  <div class="booking-content">
+    <div class="booking-badge" data-i18n="booking_badge">⚡ 预约代办 · 快速通道</div>
+    <div class="booking-title" data-i18n="booking_title">需要快速锁定 Cita Previa 预约？</div>
+    <div class="booking-desc" data-i18n="booking_desc">官方放号时间具有偶发性且名额极速抢空。如您时间紧迫、无暇全天候守候，或多次尝试未果，可前往专业预约服务平台直接下单。支持按指纹（4010）及各类居留业务，自动化极速锁号，省时省心。</div>
+    <div class="booking-tip" data-i18n="booking_tip">💡 如有预约办理需求，可在上方平台直接提交委托</div>
+  </div>
+  <div class="booking-action">
+    <a href="https://citaprevia.store/" target="_blank" rel="noopener noreferrer" class="booking-btn">
+      <span data-i18n="booking_btn">前往 citaprevia.store 下单预约</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    <div class="booking-url">https://citaprevia.store/</div>
+  </div>
+</div>
 
 <footer data-i18n="footer"></footer>
 
@@ -1369,7 +1493,12 @@ const I18N = {
     last_known_offices: "上次放号警局",
     last_known_earliest: "上次最早可约",
     cellinfo_guide: "悬停或点击格子查看时段详情",
-    cellinfo_hint: "支持查看放号状态、检查次数、最早可约时间及对应办理点"
+    cellinfo_hint: "支持查看放号状态、检查次数、最早可约时间及对应办理点",
+    booking_badge: "⚡ 预约代办 · 快速通道",
+    booking_title: "需要快速锁定 Cita Previa 预约？",
+    booking_desc: "官方放号时间具有偶发性且名额极速抢空。如您时间紧迫、无暇全天候守候，或多次尝试未果，可前往专业预约服务平台直接下单。支持按指纹（4010）及各类居留业务，自动化极速锁号，省时省心。",
+    booking_tip: "💡 如有预约办理需求，可在上方平台直接提交委托",
+    booking_btn: "前往 citaprevia.store 下单预约" 
   },
   en: {
     title: "Cita Previa 4010 Slot Monitor",
@@ -1443,7 +1572,12 @@ const I18N = {
     last_known_offices: "Last Known Office",
     last_known_earliest: "Last Known Earliest",
     cellinfo_guide: "Hover or click a cell to inspect time slot details",
-    cellinfo_hint: "View appointment availability, check counts, earliest slot, and police offices"
+    cellinfo_hint: "View appointment availability, check counts, earliest slot, and police offices",
+    booking_badge: "⚡ Fast-Track Booking Service",
+    booking_title: "Need a Cita Previa Appointment Urgently?",
+    booking_desc: "Official slots release unpredictably and vanish within seconds. If you cannot monitor 24/7 or need guaranteed assistance, place an order on our partner booking platform for automated reservation and dedicated support.",
+    booking_tip: "💡 For urgent appointment needs, place your request directly on citaprevia.store",
+    booking_btn: "Book at citaprevia.store" 
   },
   es: {
     title: "Monitor de citas Cita Previa 4010",
@@ -1517,7 +1651,12 @@ const I18N = {
     last_known_offices: "Última oficina conocida",
     last_known_earliest: "Última cita más temprana",
     cellinfo_guide: "Pase el ratón o haga clic en una celda para ver detalles",
-    cellinfo_hint: "Consulte disponibilidad, número de comprobaciones, cita más temprana y oficinas"
+    cellinfo_hint: "Consulte disponibilidad, número de comprobaciones, cita más temprana y oficinas",
+    booking_badge: "⚡ Servicio de Citas · Gestión Rápida",
+    booking_title: "¿Necesitas cita previa sin esperar?",
+    booking_desc: "Las citas oficiales se agotan al instante y salen de forma impredecible. Si no puedes monitorizar las 24 horas o necesitas tu cita con urgencia, puedes realizar tu solicitud directamente en nuestra plataforma de gestión profesional.",
+    booking_tip: "💡 Si necesitas tramitar tu cita, puedes solicitarla en el enlace directo",
+    booking_btn: "Solicitar cita en citaprevia.store" 
   }
 };
 
