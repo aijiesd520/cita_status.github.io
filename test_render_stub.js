@@ -394,11 +394,11 @@ setTimeout(() => {
   const board = elementsRegistry['board'] ? elementsRegistry['board'].innerHTML : '';
   const banner = elementsRegistry['banner'] ? elementsRegistry['banner'].innerHTML : '';
 
-  const hasCities = ['Madrid', 'Valencia'].every(n => cards.includes(n) || board.includes(n));
+  const hasCities = ['Madrid', 'Valencia', 'Navarra'].every(n => cards.includes(n) || board.includes(n));
   const noExcludedProvinces = !(cards + board).includes('Las Palmas') && !(cards + board).includes('Barcelona');
 
-  console.log('cards 渲染:', cards.length, '字节, 含 Madrid/Valencia 卡:',
-    ['Madrid', 'Valencia'].map(n => cards.includes(n) || board.includes(n)).join('/'));
+  console.log('cards 渲染:', cards.length, '字节, 含 Madrid/Valencia/Navarra 卡:',
+    ['Madrid', 'Valencia', 'Navarra'].map(n => cards.includes(n) || board.includes(n)).join('/'));
   console.log('board 渲染:', board.length, '字节');
   console.log('banner:', banner.length ? '有号横幅' : '无号(隐藏)');
   console.log('排除省份(Barcelona/Las Palmas)残留:', !noExcludedProvinces);
